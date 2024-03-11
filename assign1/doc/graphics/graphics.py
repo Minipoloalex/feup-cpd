@@ -6,7 +6,7 @@ def plot_line(data, label, y="time"):
 
 def finish_plot(title):
     plt.xlabel("Matrix Size")
-    plt.ylabel("Time (ms)")
+    plt.ylabel("Time (s)")
     plt.title(title)
 
     plt.legend()
@@ -43,7 +43,7 @@ def plot_L1_L2_vs_time():
 
     # Plot "Time" data on the primary y-axis with a blue color and circle markers
     # naive_df.plot(x="matrix_size", y=["time", "L1_DCM", "L2_DCM"], marker='o', color=['blue', 'red', 'green'])
-    plt.plot(naive_df["matrix_size"], naive_df["time"], label="Time (ms)", marker='o', color='blue')
+    plt.plot(naive_df["matrix_size"], naive_df["time"], label="Time (s)", marker='o', color='blue')
 
     # Create a secondary y-axis and plot "L1 DCM" data on it with a red color and circle markers
     ax2 = plt.twinx()
@@ -56,7 +56,7 @@ def plot_L1_L2_vs_time():
 
     # # Set labels and title
     plt.xlabel("Matrix Size")
-    plt.ylabel("Time (ms)", color='blue')  # Label for primary y-axis
+    plt.ylabel("Time (s)", color='blue')  # Label for primary y-axis
     ax2.set_ylabel("DCM", color='red')  # Label for secondary y-axis (L1/L2 DCM)
     # ax2.set_ylabel("L1 DCM", color='red')  # Label for secondary y-axis (L1 DCM)
     # ax3.set_ylabel("L2 DCM", color='green')  # Label for secondary y-axis (L2 DCM)
