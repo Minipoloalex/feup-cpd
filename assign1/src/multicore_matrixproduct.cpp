@@ -6,7 +6,7 @@ using namespace std;
 
 #define SYSTEMTIME clock_t
 
-double OnMultLineParallelFor(int m_ar, int m_br)
+double OnMultLineParallelOuterFor(int m_ar, int m_br)
 {
 	SYSTEMTIME Time1, Time2;
 
@@ -29,7 +29,6 @@ double OnMultLineParallelFor(int m_ar, int m_br)
 			phb[i * m_br + j] = (double)(i + 1);
 
     double dif;
-	Time1 = clock();
     auto start = chrono::system_clock::now();
 
 	#pragma omp parallel for private(j, k)
@@ -45,13 +44,8 @@ double OnMultLineParallelFor(int m_ar, int m_br)
 	}
 
     auto end = chrono::system_clock::now();
-	Time2 = clock();
-    chrono::duration<double> elapsed_seconds = end - start;
-    cout << "Chrono time: " << elapsed_seconds.count() << "s\n";
-
-	double timeTaken = (double)(Time2 - Time1) / CLOCKS_PER_SEC;
-	sprintf(st, "Time: %3.3f seconds\n", timeTaken);
-	cout << st;
+	auto elapsed_seconds = chrono::duration<double>(end - start).count();
+    cout << "Chrono time: " << elapsed_seconds << "s\n";
 
 	// display 10 elements of the result matrix to verify correctness
 	cout << "Result matrix: " << endl;
@@ -62,16 +56,13 @@ double OnMultLineParallelFor(int m_ar, int m_br)
 	}
 	cout << endl;
 
-    // chrono::duration<double> elapsed_seconds = end - start;
-    // cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
-
 	free(pha);
 	free(phb);
 	free(phc);
-	return timeTaken;
+	return elapsed_seconds;
 }
 
-double OnMultLineParallel(int m_ar, int m_br)
+double OnMultLineParallelInnerFor(int m_ar, int m_br)
 {
 	SYSTEMTIME Time1, Time2;
 
@@ -93,10 +84,9 @@ double OnMultLineParallel(int m_ar, int m_br)
 		for (j = 0; j < m_br; j++)
 			phb[i * m_br + j] = (double)(i + 1);
 
-	Time1 = clock();
     auto start = chrono::system_clock::now();
 
-    #pragma omp parallel private(i, k)
+	#pragma omp parallel private(i, k)
 	for (i = 0; i < m_ar; i++)
 	{
 		for (k = 0; k < m_br; k++)
@@ -109,13 +99,8 @@ double OnMultLineParallel(int m_ar, int m_br)
 		}
 	}
     auto end = chrono::system_clock::now();
-    Time2 = clock();
-    auto elapsed_seconds = chrono::duration<double>(end - start);
-    cout << "Chrono time: " << elapsed_seconds.count() << "s\n";
-
-	double timeTaken = (double)(Time2 - Time1) / CLOCKS_PER_SEC;
-	sprintf(st, "Time: %3.3f seconds\n", timeTaken);
-	cout << st;
+	auto elapsed_seconds = chrono::duration<double>(end - start).count();
+    cout << "Chrono time: " << elapsed_seconds << "s\n";
 
 	// display 10 elements of the result matrix to verify correctness
 	cout << "Result matrix: " << endl;
@@ -129,11 +114,38 @@ double OnMultLineParallel(int m_ar, int m_br)
 	free(pha);
 	free(phb);
 	free(phc);
-	return timeTaken;
+	return elapsed_seconds;
+}
+
+void runFunctionTests(ofstream &ofs, double (*f)(int, int)) {
+	ofs << "matrix_size" << "," << "time" << "," << "num_threads" << endl;
+	cout << "Function running" << endl;
+	cout << endl;
+	for (int mx_size = 600; mx_size <= 3000; mx_size += 400) {
+		double timeTaken = f(mx_size, mx_size);
+		ofs << mx_size << "," << timeTaken << "," << omp_get_num_procs() << endl;
+		cout << "Ran for size " << mx_size << endl;
+	}
+	for (int mx_size = 4096; mx_size <= 10240; mx_size += 2048) {
+		double timeTaken = f(mx_size, mx_size);
+		ofs << mx_size << "," << timeTaken << "," << omp_get_num_procs() << endl;
+		cout << "Ran for size " << mx_size << endl;
+	}
 }
 
 
-int main() {
+void runTests(const string &filename) {
+	ofstream ofs(filename);
+	// runFunctionTests(ofs, OnMultLineParallelOuterFor);
+	runFunctionTests(ofs, OnMultLineParallelInnerFor);
+}
+
+
+int main(int argc, char *argv[]) {
+	if (argc > 1) {
+		runTests(argv[1]);
+		return 0;
+	}
 	int op, lin, col;
     op = 1;
 
@@ -142,56 +154,29 @@ int main() {
 		cout << endl;
 		cout << "1. Line Multiplication Parallel version 1" << endl;
         cout << "2. Line Multiplication Parallel version 2" << endl;
+		cout << "3. Run tests" << endl;
 		cout << "Selection?: ";
 		cin >> op;
 		if (op == 0)
 			break;
-		printf("Dimensions: lins=cols ? ");
-		cin >> lin;
-		col = lin;
 
-		// Start counting
-		// ret = PAPI_start(EventSet);
-		// if (ret != PAPI_OK)
-		// {
-		// 	cout << "ERROR: Start PAPI" << endl;
-		// 	handle_error(ret);
-		// }
+		if (op == 1 || op == 2) {
+			printf("Dimensions: lins=cols ? ");
+			cin >> lin;
+			col = lin;
+		}
 
 		switch (op)
 		{
             case 1:
-                OnMultLineParallelFor(lin, col);
+                OnMultLineParallelOuterFor(lin, col);
                 break;
             case 2:
-                OnMultLineParallel(lin, col);
+                OnMultLineParallelInnerFor(lin, col);
                 break;
+			case 3:
+				runTests("out" + to_string(time(0)) + ".txt");
+				break;
 		}
-
-		// ret = PAPI_stop(EventSet, values);
-		// if (ret != PAPI_OK)
-		// 	cout << "ERROR: Stop PAPI" << endl;
-		// printf("L1 DCM: %lld \n", values[0]);
-		// printf("L2 DCM: %lld \n", values[1]);
-
-		// ret = PAPI_reset(EventSet);
-		// if (ret != PAPI_OK)
-		// {
-		// 	std::cout << "FAIL reset" << endl;
-		// 	handle_error(ret);
-		// }
-
 	} while (op != 0);
-
-	// ret = PAPI_remove_event(EventSet, PAPI_L1_DCM);
-	// if (ret != PAPI_OK)
-	// 	std::cout << "FAIL L1 remove event" << endl;
-
-	// ret = PAPI_remove_event(EventSet, PAPI_L2_DCM);
-	// if (ret != PAPI_OK)
-	// 	std::cout << "FAIL L2 remove event" << endl;
-
-	// ret = PAPI_destroy_eventset(&EventSet);
-	// if (ret != PAPI_OK)
-	// 	std::cout << "FAIL destroy" << endl;
 }

@@ -8,3 +8,6 @@ multicore:
 
 clean:
 	rm -f $(TARGET)
+
+run_multicore:
+	make multicore && ./multicore_matrixproduct
