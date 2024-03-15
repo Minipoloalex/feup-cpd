@@ -65,7 +65,7 @@ def plot_naive_vs_line(y="time"):
     plot_line(naive_df, label="Naive", y=y)
     plot_line(line_df, label="Line", y=y)
 
-    finish_plot(f"Naive vs Line Matrix Multiplication ({y})")
+    finish_plot(f"Naive vs Line Matrix Multiplication ({y})", ylabel="Number of L1 DCM")
 
 
 def plot_go_vs_cpp():

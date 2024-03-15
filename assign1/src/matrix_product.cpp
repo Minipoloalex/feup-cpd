@@ -49,7 +49,6 @@ double OnMult(int m_ar, int m_br) {
     return elapsed_seconds.count();
 }
 
-// add code here for line x line matriz multiplication
 double OnMultLine(int m_ar, int m_br) {
     vector<double> pha(m_ar * m_ar, 1.0), phb(m_ar * m_ar, 1.0), phc(m_ar * m_ar, 0.0);
 
@@ -88,7 +87,6 @@ double OnMultLine(int m_ar, int m_br) {
     return elapsed_seconds.count();
 }
 
-// add code here for block x block matriz multiplication
 double OnMultBlock(int m_ar, int m_br, int bkSize) {
     vector<double> pha(m_ar * m_ar, 1.0), phb(m_ar * m_ar, 1.0), phc(m_ar * m_ar, 0.0);
 
@@ -221,35 +219,46 @@ int main(int argc, char* argv []) {
     int lin, col, blockSize;
     int op;
 
-    // int EventSet = PAPI_NULL;
-    // long long values[2];
-    // int ret;
+    int EventSet = PAPI_NULL;
+    long long values[2];
+    int ret;
 
-    // init_papi();
+    init_papi();
 
-    // ret = PAPI_create_eventset(&EventSet);
-    // if (ret != PAPI_OK)
-    // {
-    // 	cout << "ERROR: create eventset" << endl;
-    // 	handle_error(ret);
-    // }
+    ret = PAPI_create_eventset(&EventSet);
+    if (ret != PAPI_OK)
+    {
+    	cout << "ERROR: create eventset" << endl;
+    	handle_error(ret);
+    }
 
-    // ret = PAPI_add_event(EventSet, PAPI_L1_DCM);
-    // if (ret != PAPI_OK)
-    // {
-    // 	cout << "ERROR: PAPI_L1_DCM" << endl;
-    // 	// handle_error(ret);
-    // }
+    ret = PAPI_add_event(EventSet, PAPI_L1_DCM);
+    if (ret != PAPI_OK)
+    {
+    	cout << "ERROR: PAPI_L1_DCM" << endl;
+    	// handle_error(ret);
+    }
 
-    // ret = PAPI_add_event(EventSet, PAPI_L2_DCM);
-    // if (ret != PAPI_OK)
-    // {
-    // 	cout << "ERROR: PAPI_L2_DCM" << endl;
-    // 	handle_error(ret);
-    // }
+    ret = PAPI_add_event(EventSet, PAPI_L2_DCM);
+    if (ret != PAPI_OK)
+    {
+    	cout << "ERROR: PAPI_L2_DCM" << endl;
+    	handle_error(ret);
+    }
 
     if (argc > 1) {
-        // measure_times(argv[1], EventSet, values);
+        measure_times(argv[1], EventSet, values);
+        ret = PAPI_remove_event(EventSet, PAPI_L1_DCM);
+        if (ret != PAPI_OK)
+        	std::cout << "FAIL L1 remove event" << endl;
+
+        ret = PAPI_remove_event(EventSet, PAPI_L2_DCM);
+        if (ret != PAPI_OK)
+        	std::cout << "FAIL L2 remove event" << endl;
+
+        ret = PAPI_destroy_eventset(&EventSet);
+        if (ret != PAPI_OK)
+        	std::cout << "FAIL destroy" << endl;
         return 0;
     }
 
