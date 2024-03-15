@@ -200,10 +200,11 @@ void run_tests_block(ofstream& ofs, int start, int end, int jump, const vector<i
 }
 
 void measure_times(const string& fileName, int eventSet, long long values[2]) {
+    cout << "Writing to file " << fileName << endl;
     ofstream ofs(fileName);
-    ofs << "Time,L1_DCM,L2_DCM\n";
+    ofs << "mx_size,Time,L1_DCM,L2_DCM\n";
 
-    run_tests(ofs, 600, 600, 400, eventSet, values, OnMult);
+    run_tests(ofs, 600, 3000, 400, eventSet, values, OnMult);
     cout << "Completed running basic matrix multiplication tests" << endl;
 
     run_tests(ofs, 600, 3000, 400, eventSet, values, OnMultLine);

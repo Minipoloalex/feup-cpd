@@ -134,8 +134,9 @@ void runFunctionTests(ofstream &ofs, double (*f)(int, int)) {
 }
 
 
-void runTests(const string &filename) {
-	ofstream ofs(filename);
+void runTests(const string &fileName) {
+	cout << "Writing to file " << fileName << endl;
+	ofstream ofs(fileName);
 	runFunctionTests(ofs, OnMultLineParallelOuterFor);
 	runFunctionTests(ofs, OnMultLineParallelInnerFor);
 }
