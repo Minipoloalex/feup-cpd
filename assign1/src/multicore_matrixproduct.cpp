@@ -136,7 +136,7 @@ void runFunctionTests(ofstream &ofs, double (*f)(int, int)) {
 
 void runTests(const string &filename) {
 	ofstream ofs(filename);
-	// runFunctionTests(ofs, OnMultLineParallelOuterFor);
+	runFunctionTests(ofs, OnMultLineParallelOuterFor);
 	runFunctionTests(ofs, OnMultLineParallelInnerFor);
 }
 

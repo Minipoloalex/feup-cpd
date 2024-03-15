@@ -18,24 +18,20 @@ complete_line_df = pd.concat(
     ignore_index=True,
 )
 
-line_df_multicore_v1 = pd.read_csv("multicore_data_v1.csv")
-line_df_multicore_v2 = pd.read_csv("multicore_data_v2.csv")
+line_df_multicore_inner = pd.read_csv("multicore_data_inner.csv")
+line_df_multicore_outer = pd.read_csv("multicore_data_outer.csv")
 
 # matrix multiplication: 2 * n ^ 3 floating points operations
 flops_func = lambda df: 2 * df["matrix_size"] ** 3 / df["time"] / 1e6
-for df in [complete_line_df, line_df_multicore_v1, line_df_multicore_v2]:
+for df in [complete_line_df, line_df_multicore_inner, line_df_multicore_outer]:
     df["flops"] = flops_func(df)
 
 speedup_func = lambda df: complete_line_df["time"] / df["time"]
 efficiency_func = lambda df: df["speedup"] / df["num_threads"]
 
-for df in [line_df_multicore_v1, line_df_multicore_v2]:
+for df in [line_df_multicore_inner, line_df_multicore_outer]:
     df["speedup"] = speedup_func(df)
     df["efficiency"] = efficiency_func(df)
-
-print(complete_line_df)
-print(line_df_multicore_v1)
-print(line_df_multicore_v2)
 
 
 def plot_line(data, label, y="time"):
@@ -96,28 +92,28 @@ def plot_line_go_vs_cpp():
 
 
 def plot_multicore_flops():
+    plot_line(line_df_multicore_outer, label="Line Multicore Outer", y="flops")
+    plot_line(line_df_multicore_inner, label="Line Multicore Inner", y="flops")
     plot_line(complete_line_df, label="Line Single Core", y="flops")
-    plot_line(line_df_multicore_v1, label="Line Multicore v1", y="flops")
-    plot_line(line_df_multicore_v2, label="Line Multicore v2", y="flops")
     finish_plot("Line Matrix Multiplication: Multicore MFLOPS", ylabel="MFLOPS")
 
 
 def plot_multicore_time():
+    plot_line(line_df_multicore_outer, label="Line Multicore Outer")
+    plot_line(line_df_multicore_inner, label="Line Multicore Inner")
     plot_line(complete_line_df, label="Line Single Core")
-    plot_line(line_df_multicore_v1, label="Line Multicore v1")
-    plot_line(line_df_multicore_v2, label="Line Multicore v2")
     finish_plot("Line Matrix Multiplication: Multicore Time")
 
 
 def plot_multicore_speedup():
-    plot_line(line_df_multicore_v1, label="Line Multicore v1", y="speedup")
-    plot_line(line_df_multicore_v2, label="Line Multicore v2", y="speedup")
+    plot_line(line_df_multicore_outer, label="Line Multicore Outer", y="speedup")
+    plot_line(line_df_multicore_inner, label="Line Multicore Inner", y="speedup")
     finish_plot("Line Matrix Multiplication: Multicore Speedup", ylabel="Speedup")
 
 
 def plot_multicore_efficiency():
-    plot_line(line_df_multicore_v1, label="Line Multicore v1", y="efficiency")
-    plot_line(line_df_multicore_v2, label="Line Multicore v2", y="efficiency")
+    plot_line(line_df_multicore_outer, label="Line Multicore Outer", y="efficiency")
+    plot_line(line_df_multicore_inner, label="Line Multicore Inner", y="efficiency")
     finish_plot("Line Matrix Multiplication: Multicore Efficiency", ylabel="Efficiency")
 
 
