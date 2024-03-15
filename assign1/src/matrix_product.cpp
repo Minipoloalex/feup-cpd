@@ -139,8 +139,8 @@ void stop_and_reset_papi(int eventSet, long long values[2]) {
         cout << "ERROR: Stop PAPI" << endl;
         handle_error(ret);
     }
-    // printf("L1 DCM: %lld \n", values[0]);
-    // printf("L2 DCM: %lld \n", values[1]);
+    printf("L1 DCM: %lld \n", values[0]);
+    printf("L2 DCM: %lld \n", values[1]);
 
     ret = PAPI_reset(eventSet);
     if (ret != PAPI_OK) {
@@ -183,7 +183,9 @@ void run_tests_block(ofstream& ofs, int start, int end, int jump, const vector<i
     int ret;
     ofs << "Block Size,Matrix Size,Time,L1_DCM, L2_DCM\n";
     for (int sz = start; sz <= end; sz += jump) {
+        cout << "Matrix size: " << sz << endl;
         for (int bk : blockSizes) {
+            cout << "Block size: " << bk << endl;
             ret = PAPI_start(eventSet);
             if (ret != PAPI_OK) {
                 cout << "ERROR: Start PAPI" << endl;
