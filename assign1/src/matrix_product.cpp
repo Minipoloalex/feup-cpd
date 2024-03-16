@@ -181,7 +181,7 @@ void run_tests(ofstream& ofs, int start, int end, int jump, int eventSet, long l
 
 void run_tests_block(ofstream& ofs, int start, int end, int jump, const vector<int>& blockSizes, int eventSet, long long values[2]) {
     int ret;
-    ofs << "Block Size,Matrix Size,Time,L1_DCM, L2_DCM\n";
+    ofs << "matrix_size,block_size,time,L1_DCM, L2_DCM\n";
     for (int sz = start; sz <= end; sz += jump) {
         cout << "Matrix size: " << sz << endl;
         for (int bk : blockSizes) {
@@ -202,7 +202,7 @@ void run_tests_block(ofstream& ofs, int start, int end, int jump, const vector<i
 void measure_times(const string& fileName, int eventSet, long long values[2]) {
     cout << "Writing to file " << fileName << endl;
     ofstream ofs(fileName);
-    ofs << "mx_size,Time,L1_DCM,L2_DCM\n";
+    ofs << "matrix_size,time,L1_DCM,L2_DCM\n";
 
     run_tests(ofs, 600, 3000, 400, eventSet, values, OnMult);
     cout << "Completed running basic matrix multiplication tests" << endl;
@@ -239,7 +239,7 @@ int main(int argc, char* argv []) {
     if (ret != PAPI_OK)
     {
     	cout << "ERROR: PAPI_L1_DCM" << endl;
-    	// handle_error(ret);
+    	handle_error(ret);
     }
 
     ret = PAPI_add_event(EventSet, PAPI_L2_DCM);
@@ -279,12 +279,12 @@ int main(int argc, char* argv []) {
         col = lin;
 
         // Start counting
-        // ret = PAPI_start(EventSet);
-        // if (ret != PAPI_OK)
-        // {
-        // 	cout << "ERROR: Start PAPI" << endl;
-        // 	handle_error(ret);
-        // }
+        ret = PAPI_start(EventSet);
+        if (ret != PAPI_OK)
+        {
+        	cout << "ERROR: Start PAPI" << endl;
+        	handle_error(ret);
+        }
 
         switch (op) {
         case 1:
@@ -300,30 +300,30 @@ int main(int argc, char* argv []) {
             break;
         }
 
-        // ret = PAPI_stop(EventSet, values);
-        // if (ret != PAPI_OK)
-        // 	cout << "ERROR: Stop PAPI" << endl;
-        // printf("L1 DCM: %lld \n", values[0]);
-        // printf("L2 DCM: %lld \n", values[1]);
+        ret = PAPI_stop(EventSet, values);
+        if (ret != PAPI_OK)
+        	cout << "ERROR: Stop PAPI" << endl;
+        printf("L1 DCM: %lld \n", values[0]);
+        printf("L2 DCM: %lld \n", values[1]);
 
-        // ret = PAPI_reset(EventSet);
-        // if (ret != PAPI_OK)
-        // {
-        // 	std::cout << "FAIL reset" << endl;
-        // 	handle_error(ret);
-        // }
+        ret = PAPI_reset(EventSet);
+        if (ret != PAPI_OK)
+        {
+        	std::cout << "FAIL reset" << endl;
+        	handle_error(ret);
+        }
 
     } while (op != 0);
 
-    // ret = PAPI_remove_event(EventSet, PAPI_L1_DCM);
-    // if (ret != PAPI_OK)
-    // 	std::cout << "FAIL L1 remove event" << endl;
+    ret = PAPI_remove_event(EventSet, PAPI_L1_DCM);
+    if (ret != PAPI_OK)
+    	std::cout << "FAIL L1 remove event" << endl;
 
-    // ret = PAPI_remove_event(EventSet, PAPI_L2_DCM);
-    // if (ret != PAPI_OK)
-    // 	std::cout << "FAIL L2 remove event" << endl;
+    ret = PAPI_remove_event(EventSet, PAPI_L2_DCM);
+    if (ret != PAPI_OK)
+    	std::cout << "FAIL L2 remove event" << endl;
 
-    // ret = PAPI_destroy_eventset(&EventSet);
-    // if (ret != PAPI_OK)
-    // 	std::cout << "FAIL destroy" << endl;
+    ret = PAPI_destroy_eventset(&EventSet);
+    if (ret != PAPI_OK)
+    	std::cout << "FAIL destroy" << endl;
 }
