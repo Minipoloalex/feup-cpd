@@ -9,7 +9,7 @@ line_df_go = read_csv("line_go.csv")
 
 naive_df = read_csv("naive.csv")
 
-line_df = read_csv("line_600_3000.csv")
+line_df = read_csv("others/line_data.csv")
 line_df_compare_block = read_csv("line_4096_10240.csv")
 block_df = read_csv("block.csv")
 
@@ -21,8 +21,8 @@ complete_line_df = pd.concat(
     ignore_index=True,
 )
 
-line_df_multicore_inner = read_csv("multicore_inner.csv")
-line_df_multicore_outer = read_csv("multicore_outer.csv")
+line_df_multicore_inner = read_csv("others/multicore_inner.csv")
+line_df_multicore_outer = read_csv("others/multicore_outer.csv")
 
 # matrix multiplication: 2 * n ^ 3 floating points operations
 flops_func = lambda df: 2 * df["matrix_size"] ** 3 / df["time"] / 1e6
