@@ -1,26 +1,30 @@
 CC = g++
-CFLAGS = -fopenmp -lpapi
-TARGET = multicore_matrixproduct
-SRC = multicore_matrixproduct.cpp
 
+SRC_NORMAL = matrix_product.cpp
+TARGET_NORMAL = matrix_product
+CFLAGS_NORMAL = -lpapi
+
+SRC_MULTICORE = multicore_matrix_product.cpp
+TARGET_MULTICORE = multicore_matrix_product
+CFLAGS_MULTICORE = -fopenmp -lpapi
 
 both:
 	make normal && make multicore
 
 clean:
-	rm -f $(TARGET) matrix_product
+	rm -f multicore_matrix_product matrix_product
 
 normal:
-	$(CC) -O2 matrix_product.cpp -o matrix_product -lpapi
+	$(CC) -O2 $(SRC_NORMAL) -o $(TARGET_NORMAL) $(CFLAGS_NORMAL)
 
 run_normal:
-	make normal && ./matrix_product
+	make normal && ./$(TARGET_NORMAL)
 
 run_normal_tests:
-	make normal && ./matrix_product $$(date +%s%N)
+	make normal && ./$(TARGET_NORMAL) normal$$(date +%s%N).csv
 
 multicore:
-	$(CC) -O2 $(SRC) -o $(TARGET) $(CFLAGS)
+	$(CC) -O2 $(SRC_MULTICORE) -o $(TARGET_MULTICORE) $(CFLAGS_MULTICORE)
 
 run_multicore:
-	make multicore && ./multicore_matrixproduct
+	make multicore && ./$(TARGET_MULTICORE)

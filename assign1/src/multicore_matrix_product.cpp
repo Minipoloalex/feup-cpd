@@ -1,35 +1,31 @@
-#include <bits/stdc++.h>
+#include <chrono>
+#include <stdio.h>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <vector>
+#include <cstdlib>
+#include <time.h>
 #include <papi.h>
 #include <omp.h>
 
 using namespace std;
 
-#define SYSTEMTIME clock_t
-
 double OnMultLineParallelOuterFor(int m_ar, int m_br)
 {
-	SYSTEMTIME Time1, Time2;
+	vector<double> pha(m_ar * m_ar, 1.0), phb(m_ar * m_ar, 1.0), phc(m_ar * m_ar, 0.0);
+	for (int i = 0; i < m_ar; i++)
+        for (int j = 0; j < m_ar; j++)
+            pha[i * m_ar + j] = 1.0;
 
-	char st[100];
-	double temp;
-	int i, j, k;
+    for (int i = 0; i < m_br; i++)
+        for (int j = 0; j < m_br; j++)
+            phb[i * m_br + j] = i + 1;
 
-	double *pha, *phb, *phc;
+	int i, k, j;
 
-	pha = (double *)malloc((m_ar * m_ar) * sizeof(double));
-	phb = (double *)malloc((m_ar * m_ar) * sizeof(double));
-	phc = (double *)malloc((m_ar * m_ar) * sizeof(double));
-
-	for (i = 0; i < m_ar; i++)
-		for (j = 0; j < m_ar; j++)
-			pha[i * m_ar + j] = (double)1.0;
-
-	for (i = 0; i < m_br; i++)
-		for (j = 0; j < m_br; j++)
-			phb[i * m_br + j] = (double)(i + 1);
-
-    double dif;
-    auto start = chrono::system_clock::now();
+	chrono::time_point<chrono::system_clock> start, end;
+    start = chrono::system_clock::now();
 
 	#pragma omp parallel for private(j, k)
 	for (i = 0; i < m_ar; i++)
@@ -43,9 +39,10 @@ double OnMultLineParallelOuterFor(int m_ar, int m_br)
 		}
 	}
 
-    auto end = chrono::system_clock::now();
-	auto elapsed_seconds = chrono::duration<double>(end - start).count();
-    cout << "Chrono time: " << elapsed_seconds << "s\n";
+    end = chrono::system_clock::now();
+    chrono::duration<double> elapsed_seconds = end - start;
+
+    cout << "Time: " << elapsed_seconds.count() << " seconds" << endl;
 
 	// display 10 elements of the result matrix to verify correctness
 	cout << "Result matrix: " << endl;
@@ -56,35 +53,24 @@ double OnMultLineParallelOuterFor(int m_ar, int m_br)
 	}
 	cout << endl;
 
-	free(pha);
-	free(phb);
-	free(phc);
-	return elapsed_seconds;
+	return elapsed_seconds.count();
 }
 
 double OnMultLineParallelInnerFor(int m_ar, int m_br)
 {
-	SYSTEMTIME Time1, Time2;
+	vector<double> pha(m_ar * m_ar, 1.0), phb(m_ar * m_ar, 1.0), phc(m_ar * m_ar, 0.0);
+	for (int i = 0; i < m_ar; i++)
+        for (int j = 0; j < m_ar; j++)
+            pha[i * m_ar + j] = 1.0;
 
-	char st[100];
-	double temp;
-	int i, j, k;
+    for (int i = 0; i < m_br; i++)
+        for (int j = 0; j < m_br; j++)
+            phb[i * m_br + j] = i + 1;
 
-	double *pha, *phb, *phc;
+	int i, k, j;
 
-	pha = (double *)malloc((m_ar * m_ar) * sizeof(double));
-	phb = (double *)malloc((m_ar * m_ar) * sizeof(double));
-	phc = (double *)malloc((m_ar * m_ar) * sizeof(double));
-
-	for (i = 0; i < m_ar; i++)
-		for (j = 0; j < m_ar; j++)
-			pha[i * m_ar + j] = (double)1.0;
-
-	for (i = 0; i < m_br; i++)
-		for (j = 0; j < m_br; j++)
-			phb[i * m_br + j] = (double)(i + 1);
-
-    auto start = chrono::system_clock::now();
+	chrono::time_point<chrono::system_clock> start, end;
+    start = chrono::system_clock::now();
 
 	#pragma omp parallel private(i, k)
 	for (i = 0; i < m_ar; i++)
@@ -98,9 +84,11 @@ double OnMultLineParallelInnerFor(int m_ar, int m_br)
 			}
 		}
 	}
-    auto end = chrono::system_clock::now();
-	auto elapsed_seconds = chrono::duration<double>(end - start).count();
-    cout << "Chrono time: " << elapsed_seconds << "s\n";
+
+	end = chrono::system_clock::now();
+    chrono::duration<double> elapsed_seconds = end - start;
+
+    cout << "Time: " << elapsed_seconds.count() << " seconds" << endl;
 
 	// display 10 elements of the result matrix to verify correctness
 	cout << "Result matrix: " << endl;
@@ -111,10 +99,7 @@ double OnMultLineParallelInnerFor(int m_ar, int m_br)
 	}
 	cout << endl;
 
-	free(pha);
-	free(phb);
-	free(phc);
-	return elapsed_seconds;
+	return elapsed_seconds.count();
 }
 
 void runFunctionTests(ofstream &ofs, double (*f)(int, int)) {
@@ -153,8 +138,8 @@ int main(int argc, char *argv[]) {
 	do
 	{
 		cout << endl;
-		cout << "1. Line Multiplication Parallel version 1" << endl;
-        cout << "2. Line Multiplication Parallel version 2" << endl;
+		cout << "1. Line Multiplication Parallel Outer loop" << endl;
+        cout << "2. Line Multiplication Parallel Inner loop" << endl;
 		cout << "3. Run tests" << endl;
 		cout << "Selection?: ";
 		cin >> op;
@@ -176,7 +161,7 @@ int main(int argc, char *argv[]) {
                 OnMultLineParallelInnerFor(lin, col);
                 break;
 			case 3:
-				runTests("out" + to_string(time(0)) + ".txt");
+				runTests("parallel" + to_string(time(0)) + ".csv");
 				break;
 		}
 	} while (op != 0);
