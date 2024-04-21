@@ -2,7 +2,7 @@ package pt.up;
 
 import java.net.*;
 
-import pt.up.states.AuthState;
+import pt.up.states.AuthMenuState;
 import pt.up.states.State;
 
 import java.io.*;
@@ -20,6 +20,12 @@ public class ServerThread implements Runnable {
         this.state = st;
         this.state.onEnter();
     }
+
+    /**
+     * Sends an empty line to the client.
+     * The client expects a sequence of lines ending with an empty line, after which it will send its own input.
+     * @param out
+     */
     private void sendEmptyLine(PrintWriter out) {
         out.println();
     }
@@ -30,7 +36,7 @@ public class ServerThread implements Runnable {
                 BufferedReader in = new BufferedReader(
                         new InputStreamReader(clientSocket.getInputStream()));) {
             String inputLine;
-            this.state = new AuthState(out);
+            this.state = new AuthMenuState(out);
             this.state.onEnter();
             this.state.render();
             this.sendEmptyLine(out);
@@ -45,9 +51,10 @@ public class ServerThread implements Runnable {
                 this.state.render();
                 this.sendEmptyLine(out);
             }
-
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Exception caught when trying to listen on port "
+                    + clientSocket.getPort() + " or listening for a connection");
+            System.err.println(e.getMessage());
         }
     }
 }

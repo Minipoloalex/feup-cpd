@@ -2,8 +2,8 @@ package pt.up.states;
 
 import java.io.PrintWriter;
 
-public class MenuState extends State {
-    public MenuState(PrintWriter out) {
+public class PlayMenuState extends State {
+    public PlayMenuState(PrintWriter out) {
         super(out);
     }
 

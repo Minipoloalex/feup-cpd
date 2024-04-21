@@ -1,6 +1,9 @@
 package pt.up;
 
 import java.net.*;
+
+// import javax.net.ssl.SSLSocket;
+
 import java.io.*;
 
 public class Server {
@@ -14,13 +17,15 @@ public class Server {
 
         int portNumber = Integer.parseInt(args[0]);
         try (
-                ServerSocket serverSocket = new ServerSocket(Integer.parseInt(args[0]));) {
+            // SSLSocketFactory sslSocketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+            // SSLSocket sslSocket = (SSLSocket) sslSocketFactory.createSocket("localhost", portNumber);
+            ServerSocket serverSocket = new ServerSocket(portNumber)) {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
 
                 // Accept incoming connections
                 // Start a service thread
-                Thread.ofVirtual().start(
+                Thread t = Thread.ofVirtual().start(
                         new ServerThread(clientSocket));
             }
         } catch (IOException e) {
