@@ -11,7 +11,7 @@ public class LoginState extends State {
         super(out);
     }
     private void handleUsername(String inputLine) {
-        if (Auth.usernameExists(inputLine)) {
+        if (Auth.existsUsername(inputLine)) {
             username = inputLine;
         } else {
             out.println("Username does not exist");
@@ -30,7 +30,7 @@ public class LoginState extends State {
             if (inputLine.isEmpty()) {
                 username = null;
             }
-            else if (Auth.authenticate(username, inputLine)) {
+            else if (Auth.login(username, inputLine)) {
                 out.println("Authentication successful");
                 return new PlayMenuState(out);
             }

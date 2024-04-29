@@ -10,7 +10,7 @@ public class RegisterState extends State {
         super(out);
     }
     private void handleUsername(String inputLine) {
-        if (Auth.usernameExists(inputLine)) {
+        if (Auth.existsUsername(inputLine)) {
             out.println("Username already exists");
         } else {
             username = inputLine;

@@ -33,5 +33,9 @@ public class Server {
                     + portNumber + " or listening for a connection");
             System.out.println(e.getMessage());
         }
+        finally {
+            System.out.println("FINALLY");
+            Auth.saveUsers();
+        }
     }
 }

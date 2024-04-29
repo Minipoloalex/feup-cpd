@@ -1,0 +1,47 @@
+package pt.up;
+
+public class User implements Comparable<User> {
+    private final String username;
+    private final String hashedPassword;
+    private final String salt;
+    private int rating;
+
+    public User(String username, String password, String salt) {
+        this(username, password, salt, 1000);
+    }
+    public User(String username, String password, String salt, int rating) {
+        this.username = username;
+        this.hashedPassword = password;
+        this.salt = salt;
+        this.rating = rating;
+    }
+    public synchronized String getHashedPassword() {
+        return this.hashedPassword;
+    }
+    public synchronized String getSalt() {
+        return this.salt;
+    }
+    public synchronized boolean checkPassword(String encryptedPassword) {
+        return this.hashedPassword.equals(encryptedPassword);
+    }
+
+    public synchronized String getUsername() {
+        return this.username;
+    }
+    public synchronized String toCSV() {
+        return String.format("%s;%s;%s;%d", username, salt, hashedPassword, rating);
+    }
+    public synchronized int getRating() {
+        return this.rating;
+    }
+    public synchronized void setRating(int rating) {
+        this.rating = rating;
+    }
+    public synchronized void updateRating(int ratingDiff) {
+        rating += ratingDiff;
+    }
+    @Override
+    public synchronized int compareTo(User o) {
+        return 1;
+    }
+}
