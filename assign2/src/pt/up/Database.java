@@ -1,6 +1,5 @@
 package pt.up;
 
-import javax.naming.NameClassPair;
 import java.io.*;
 import java.security.SecureRandom;
 import java.security.MessageDigest;
@@ -99,8 +98,6 @@ public class Database {
                 }
                 usersSortedByRating.add(user);  // nobody else can access the Database so the user is not accessible yet
                 users.put(username, user);
-                System.out.println(users);
-                System.out.println(usersSortedByRating);
                 return true;
             }
         } catch (NoSuchAlgorithmException e) {    //  | IOException e
@@ -123,38 +120,35 @@ public class Database {
         return true;
     }
 
-    public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
-        String hashedPwd = Database.hashPassword("password", "salt");
-        System.out.println(hashedPwd);
-
+    public static void main(String[] args) throws IOException {
         Database db = new Database();
         boolean stored = db.storeNewUser("user1", "password");
-        assert stored : "Failed to store user";
+        assert stored : "Failed to store user1, maybe you already ran this script saving it?";
 
         stored = db.storeNewUser("user2", "password");
-        assert stored;
+        assert stored : "Failed to store user2";
 
         boolean exists = db.existsUsername("user1");
-        assert exists;
+        assert exists : "User 1 does not exist";
 
         exists = db.existsUsername("user3");
-        assert !exists;
+        assert !exists : "User 3 exists and should not";
 
         boolean checked = db.checkUserPassword("user1", "password");
-        assert checked;
+        assert checked : "Password is incorrect when it should be correct";
 
         checked = db.checkUserPassword("user1", "wrongpassword");
-        assert !checked;
+        assert !checked : "Incorrect password but returned correct";
 
         boolean updated = db.updateRating("user1", 1200);
-        assert updated;
+        assert updated : "Did not update rating";
 
         updated = db.updateRating("user3", 100);
-        assert !updated;
+        assert !updated : "Updated rating of non-existent user";
 
         List<User> users = db.getUsersSortedByRating();
-        assert users.size() == 2;
-        assert users.getFirst().getUsername().equals("user2");
+        assert users.size() == 2 : "There should be 2 users in the database";
+        assert users.getFirst().getUsername().equals("user2") : "The first user sorted ascending by rating should be user2";
 
         db.saveUsers();
     }

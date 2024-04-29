@@ -1,7 +1,6 @@
 package pt.up;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 
 
 public class Auth {
@@ -28,8 +27,8 @@ public class Auth {
 
     /**
      *
-     * @param username
-     * @param password
+     * @param username username of the user to register
+     * @param password plaintext password of the user to store
      * @return true if the user was successfully registered (username did not
      *         exist), false otherwise (username already exists)
      */

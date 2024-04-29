@@ -8,7 +8,7 @@ import java.io.*;
 
 public class Server {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         if (args.length != 1) {
             System.err.println("Usage: java Server <port>");
             System.exit(1);

@@ -40,8 +40,19 @@ public class User implements Comparable<User> {
     public synchronized void updateRating(int ratingDiff) {
         rating += ratingDiff;
     }
+
     @Override
     public synchronized int compareTo(User o) {
-        return 1;
+        int myRating = this.rating;
+        int otherRating = o.getRating();
+
+        if (myRating == otherRating) {
+            // If ratings are equal, compare usernames to maintain a consistent ordering
+            return this.username.compareTo(o.getUsername());
+        } else {
+            // Compare based on ratings
+            return Integer.compare(myRating, otherRating);
+        }
     }
+
 }
