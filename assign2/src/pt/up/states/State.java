@@ -1,13 +1,21 @@
 package pt.up.states;
 
 import java.io.PrintWriter;
+import pt.up.User;
 
 public abstract class State {
     protected final PrintWriter out;
+    protected User user;
 
     public State(PrintWriter out) {
         this.out = out;
     }
+
+    public State(PrintWriter out, User u) {
+        this.out = out;
+        this.user = u;
+    }
+
     /**
      * 
      * @param inputLine the input that came from the client
@@ -20,4 +28,8 @@ public abstract class State {
     public abstract void onEnter();
 
     public abstract void onExit();
+
+    public User getUser() {
+        return this.user;
+    }
 }

@@ -45,6 +45,10 @@ public class Auth {
             throw new RuntimeException(e);
         }
     }
+
+    public static User getUser(String username) {
+        return db.getUser(username);
+    }
     public static void main(String[] args) {
 
     }

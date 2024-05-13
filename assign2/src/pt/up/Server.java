@@ -1,5 +1,8 @@
 package pt.up;
 
+import pt.up.Queues.NormalQueue;
+import pt.up.Queues.Queue;
+
 import java.net.*;
 
 // import javax.net.ssl.SSLSocket;
@@ -19,6 +22,7 @@ public class Server {
         try (
             // SSLSocketFactory sslSocketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
             // SSLSocket sslSocket = (SSLSocket) sslSocketFactory.createSocket("localhost", portNumber);
+
             ServerSocket serverSocket = new ServerSocket(portNumber)) {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
@@ -32,8 +36,9 @@ public class Server {
             System.out.println("Exception caught when trying to listen on port "
                     + portNumber + " or listening for a connection");
             System.out.println(e.getMessage());
-        }
-        finally {
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
             System.out.println("FINALLY");
             Auth.saveUsers();
         }

@@ -6,9 +6,11 @@ import java.io.PrintWriter;
 
 public class RegisterState extends State {
     private String username = null;
+
     public RegisterState(PrintWriter out) {
-        super(out);
+        super(out, null);
     }
+
     private void handleUsername(String inputLine) {
         if (Auth.existsUsername(inputLine)) {
             out.println("Username already exists");
@@ -16,6 +18,7 @@ public class RegisterState extends State {
             username = inputLine;
         }
     }
+
     @Override
     public State handle(String inputLine) {
         if (username == null) {
@@ -23,8 +26,7 @@ public class RegisterState extends State {
                 return new AuthMenuState(out);
             }
             this.handleUsername(inputLine);
-        }
-        else {
+        } else {
             if (Auth.register(username, inputLine)) {
                 out.println("Registration successful");
                 return new AuthMenuState(out);
@@ -40,8 +42,7 @@ public class RegisterState extends State {
     public void render() {
         if (username == null) {
             out.println("Introduce the username to register");
-        }
-        else {
+        } else {
             out.println("Introduce the password to register");
         }
     }

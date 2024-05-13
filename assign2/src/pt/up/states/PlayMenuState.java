@@ -1,15 +1,20 @@
 package pt.up.states;
 
 import java.io.PrintWriter;
+import pt.up.User;
 
 public class PlayMenuState extends State {
     public PlayMenuState(PrintWriter out) {
         super(out);
     }
 
+    public PlayMenuState(PrintWriter out, User u) {
+        super(out, u);
+    }
+
     public State handle(String inputLine) {
         if (inputLine.equals("1")) {
-            // return new SimpleState(out);
+            return new QueueState(this.out, this.user);
         } else if (inputLine.equals("2")) {
             // return new RankState(out);
         }

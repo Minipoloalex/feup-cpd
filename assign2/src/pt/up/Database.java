@@ -15,6 +15,7 @@ public class Database {
      * Mapping of username to user
      */
     private final Map<String, User> users = new HashMap<>();
+
     /**
      * Users sorted by their rating to help in matchmaking.
      */
@@ -22,33 +23,6 @@ public class Database {
 
     public Database() throws IOException {
         loadUsers();
-    }
-    public synchronized List<User> getUsersSortedByRating() {
-        return new ArrayList<>(usersSortedByRating);
-    }
-
-    private void loadUsers() throws IOException {
-        try (BufferedReader reader = new BufferedReader(new FileReader(USERS_FILE))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] userInfo = line.split(";");
-                String username = userInfo[0];
-                String hashedPassword = userInfo[1];
-                String salt = userInfo[2];
-                int rating = Integer.parseInt(userInfo[3]);
-                User user = new User(username, hashedPassword, salt, rating);
-                users.put(username, user);
-                usersSortedByRating.add(user);
-            }
-        }
-    }
-    public synchronized void saveUsers() throws IOException {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(USERS_FILE))) {
-            for (User user : users.values()) {
-                writer.write(user.toCSV());
-                writer.newLine();
-            }
-        }
     }
 
     private static String generateSalt() {
@@ -63,61 +37,6 @@ public class Database {
         messageDigest.update(salt.getBytes());
         byte[] hashedPassword = messageDigest.digest(password.getBytes());
         return Arrays.toString(hashedPassword);
-    }
-
-    private synchronized User getUser(String username) {
-        return users.get(username);
-    }
-    public boolean checkUserPassword(String username, String password) {
-        String hashedPassword;
-        String salt;
-        User u;
-        synchronized (this) {
-            u = users.get(username);
-        }
-        if (u == null) {
-            return false;
-        }
-        hashedPassword = u.getHashedPassword();
-        salt = u.getSalt();
-        try {
-            return hashedPassword.equals(hashPassword(password, salt));
-        } catch (NoSuchAlgorithmException e) {
-            System.err.println("Error checking user password " + e.getMessage());
-            return false;
-        }
-    }
-    public boolean storeNewUser(String username, String password) {
-        try {
-            String salt = generateSalt();
-            String hashedPassword = hashPassword(password, salt);
-            User user = new User(username, hashedPassword, salt);
-            synchronized (this) {
-                if (existsUsername(username)) {
-                    return false;
-                }
-                usersSortedByRating.add(user);  // nobody else can access the Database so the user is not accessible yet
-                users.put(username, user);
-                return true;
-            }
-        } catch (NoSuchAlgorithmException e) {    //  | IOException e
-            System.err.println("Error storing new user " + e.getMessage());
-            return false;
-        }
-    }
-    public synchronized boolean existsUsername(String username) {
-        return users.containsKey(username);
-    }
-
-    public synchronized boolean updateRating(String username, int newRating) {
-        User user = getUser(username);
-        if (user == null) {
-            return false;
-        }
-        usersSortedByRating.remove(user);
-        user.setRating(newRating);
-        usersSortedByRating.add(user);
-        return true;
     }
 
     public static void main(String[] args) throws IOException {
@@ -151,5 +70,92 @@ public class Database {
         assert users.getFirst().getUsername().equals("user2") : "The first user sorted ascending by rating should be user2";
 
         db.saveUsers();
+    }
+
+    public synchronized List<User> getUsersSortedByRating() {
+        return new ArrayList<>(usersSortedByRating);
+    }
+
+    private void loadUsers() throws IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(USERS_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] userInfo = line.split(";");
+                String username = userInfo[0];
+                String hashedPassword = userInfo[1];
+                String salt = userInfo[2];
+                int rating = Integer.parseInt(userInfo[3]);
+                User user = new User(username, hashedPassword, salt, rating);
+                users.put(username, user);
+                usersSortedByRating.add(user);
+            }
+        }
+    }
+
+    public synchronized void saveUsers() throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(USERS_FILE))) {
+            for (User user : users.values()) {
+                writer.write(user.toCSV());
+                writer.newLine();
+            }
+        }
+    }
+
+    public synchronized User getUser(String username) {
+        return users.get(username);
+    }
+
+    public boolean checkUserPassword(String username, String password) {
+        String hashedPassword;
+        String salt;
+        User u;
+        synchronized (this) {
+            u = users.get(username);
+        }
+        if (u == null) {
+            return false;
+        }
+        hashedPassword = u.getHashedPassword();
+        salt = u.getSalt();
+        try {
+            return hashedPassword.equals(hashPassword(password, salt));
+        } catch (NoSuchAlgorithmException e) {
+            System.err.println("Error checking user password " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean storeNewUser(String username, String password) {
+        try {
+            String salt = generateSalt();
+            String hashedPassword = hashPassword(password, salt);
+            User user = new User(username, hashedPassword, salt);
+            synchronized (this) {
+                if (existsUsername(username)) {
+                    return false;
+                }
+                usersSortedByRating.add(user);  // nobody else can access the Database so the user is not accessible yet
+                users.put(username, user);
+                return true;
+            }
+        } catch (NoSuchAlgorithmException e) {    //  | IOException e
+            System.err.println("Error storing new user " + e.getMessage());
+            return false;
+        }
+    }
+
+    public synchronized boolean existsUsername(String username) {
+        return users.containsKey(username);
+    }
+
+    public synchronized boolean updateRating(String username, int newRating) {
+        User user = getUser(username);
+        if (user == null) {
+            return false;
+        }
+        usersSortedByRating.remove(user);
+        user.setRating(newRating);
+        usersSortedByRating.add(user);
+        return true;
     }
 }

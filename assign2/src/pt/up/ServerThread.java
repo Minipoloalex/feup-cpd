@@ -24,11 +24,13 @@ public class ServerThread implements Runnable {
     /**
      * Sends an empty line to the client.
      * The client expects a sequence of lines ending with an empty line, after which it will send its own input.
+     *
      * @param out
      */
     private void sendEmptyLine(PrintWriter out) {
         out.println();
     }
+
     @Override
     public void run() {
         try (
