@@ -5,34 +5,38 @@ import pt.up.User;
 import java.util.LinkedList;
 import java.util.List;
 
-public class NormalQueue extends Queue implements AutoCloseable {
-     static NormalQueue singleton;
+public class NormalQueue extends Queue {
+    private final List<User> _queue;
 
-    private NormalQueue() {
-        super();
-        singleton = this;
-    }
-
-    public static NormalQueue getQueueObject() {
-        if (singleton == null) {
-            return new NormalQueue();
-        }
-        return singleton;
+    public NormalQueue() {
+        this._queue = new LinkedList<>();
     }
 
     @Override
-    public synchronized List<User> startGame(int size) {
-        List<User> ret = new LinkedList<>();
-
-        for (int i = 0; i < size; i++) {
-            ret.add(this.queue.remove());
+    public boolean add(User user) {
+        if (this.contains(user)) {
+            return false; // User already in queue
         }
-
-        return ret;
+        return this._queue.add(user);
     }
 
     @Override
-    public void close() throws Exception {
-        this.queue.clear();
+    public boolean remove(User user) {
+        return this._queue.remove(user);
+    }
+
+    @Override
+    public User pop() {
+        return this._queue.remove(0);
+    }
+
+    @Override
+    public boolean contains(User user) {
+        return this._queue.contains(user);
+    }
+
+    @Override
+    public int getPlayers() {
+        return this._queue.size();
     }
 }

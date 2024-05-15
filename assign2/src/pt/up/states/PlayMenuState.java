@@ -14,7 +14,7 @@ public class PlayMenuState extends State {
 
     public State handle(String inputLine) {
         if (inputLine.equals("1")) {
-            return new QueueState(this.out, this.user);
+            return new PlayMenuState(this.out, this.user);
         } else if (inputLine.equals("2")) {
             // return new RankState(out);
         }
