@@ -16,7 +16,7 @@ public final class WaitingNormalGameState extends State {
     @Override
     public State handle(String inputLine) {
         if (inputLine.equals("back")) {
-            waitForGame.interrupt();
+            // waitForGame.interrupt();
             connection.sendRequest(Message.leave(username, token));
             connection.listen();
             return new PlayMenuState(connection, username, token);

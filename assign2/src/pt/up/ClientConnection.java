@@ -13,7 +13,7 @@ public class ClientConnection implements Runnable {
     public ClientConnection(Socket clientSocket, GameManager gameManager) throws IOException {
         this.socket = clientSocket;
         this.gameManager = gameManager;
-        this.database = new Database("src/pt/up/storage/db.csv");
+        this.database = Database.getInstance();
     }
 
     private Message handle(Message message) {

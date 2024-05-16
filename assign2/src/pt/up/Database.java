@@ -17,18 +17,28 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class Database {
     
+    private static final Database instance = new Database("src/pt/up/storage/db.csv");
     private final String path;
     private final String separator = ";";
     private final Set<User> users = new TreeSet<>();
-    
     private final ReentrantLock lock = new ReentrantLock();
+
+    /**
+     * Gets the instance of the Database class.
+     * 
+     * @return The instance of the Database class.
+     */
+    public static Database getInstance() {
+        
+        return instance;
+    }
 
     /**
      * Constructor for the Database class.
      * 
      * @param path Path to the csv file.
      */
-    public Database(String path) {
+    private Database(String path) {
         
         this.path = path;
         
