@@ -13,7 +13,7 @@ public class ClientConnection implements Runnable {
     public ClientConnection(Socket clientSocket, GameManager gameManager) throws IOException {
         this.socket = clientSocket;
         this.gameManager = gameManager;
-        this.database = new Database();
+        this.database = new Database("src/pt/up/storage/db.csv");
     }
 
     private Message handle(Message message) {
@@ -23,21 +23,25 @@ public class ClientConnection implements Runnable {
             switch (message.getType()) {
                 case MessageType.REGISTER -> {
                     String username = data.get(0), password = data.get(1);
-
-                    if (!database.storeNewUser(username, password)) {
+                    
+                    if (database.userExists(username)) {
                         return Message.error("Username already exists");
                     }
+
+                    database.addUser(new User(username, password));
+
                     return Message.ok();
                 }
 
                 case MessageType.LOGIN -> {
                     String username = data.get(0), password = data.get(1);
 
-                    if (!database.checkUserPassword(username, password)) {
+                    if (!database.checkPassword(username, password)) {
                         return Message.error("Invalid username or password");
                     }
 
                     String token = database.generateToken(username);
+                   
                     return Message.ok(token);
                 }
 

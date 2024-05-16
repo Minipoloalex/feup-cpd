@@ -1,172 +1,164 @@
 package pt.up;
 
-import java.io.*;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.util.*;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.UUID;
+import java.io.File;
+import java.io.IOException;
+import java.io.FileWriter;
+import java.util.Scanner;
+import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * Class that represents a database of users.
+ * 
+ * The database is stored in a csv file with the following format:
+ * username;password;rating
+ */
 public class Database {
-    private final static String USERS_FILE = "src/pt/up/storage/users.csv";
-    private final static int SALT_SIZE = 16;
-    private static final String HASH_ALGORITHM = "SHA-512";
+    
+    private final String path;
+    private final String separator = ";";
+    private final Set<User> users = new TreeSet<>();
+    
+    private final ReentrantLock lock = new ReentrantLock();
 
     /**
-     * Mapping of username to user
+     * Constructor for the Database class.
+     * 
+     * @param path Path to the csv file.
      */
-    private final Map<String, User> users = new HashMap<>();
+    public Database(String path) {
+        
+        this.path = path;
+        
+        // Create the file if it doesn't exist
+        File file = new File(path);
+        if (!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Load the users from the file
+        this.load();
+    }
 
     /**
-     * Users sorted by their rating to help in matchmaking.
+     * Loads the users from the csv file.
      */
-    private final Set<User> usersSortedByRating = new TreeSet<>();
-
-    public Database() throws IOException {
-        loadUsers();
-    }
-
-    private static String generateSalt() {
-        SecureRandom secureRandom = new SecureRandom();
-        byte[] salt = new byte[SALT_SIZE];
-        secureRandom.nextBytes(salt);
-        return Arrays.toString(salt);
-    }
-
-    private static String hashPassword(String password, String salt) throws NoSuchAlgorithmException {
-        MessageDigest messageDigest = MessageDigest.getInstance(HASH_ALGORITHM);
-        messageDigest.update(salt.getBytes());
-        byte[] hashedPassword = messageDigest.digest(password.getBytes());
-        return Arrays.toString(hashedPassword);
-    }
-
-    public static void main(String[] args) throws IOException {
-        Database db = new Database();
-        boolean stored = db.storeNewUser("user1", "password");
-        assert stored : "Failed to store user1, maybe you already ran this script saving it?";
-
-        stored = db.storeNewUser("user2", "password");
-        assert stored : "Failed to store user2";
-
-        boolean exists = db.existsUsername("user1");
-        assert exists : "User 1 does not exist";
-
-        exists = db.existsUsername("user3");
-        assert !exists : "User 3 exists and should not";
-
-        boolean checked = db.checkUserPassword("user1", "password");
-        assert checked : "Password is incorrect when it should be correct";
-
-        checked = db.checkUserPassword("user1", "wrongpassword");
-        assert !checked : "Incorrect password but returned correct";
-
-        boolean updated = db.updateRating("user1", 1200);
-        assert updated : "Did not update rating";
-
-        updated = db.updateRating("user3", 100);
-        assert !updated : "Updated rating of non-existent user";
-
-        List<User> users = db.getUsersSortedByRating();
-        assert users.size() == 2 : "There should be 2 users in the database";
-        assert users.getFirst().getUsername().equals("user2")
-                : "The first user sorted ascending by rating should be user2";
-
-        db.saveUsers();
-    }
-
-    public synchronized List<User> getUsersSortedByRating() {
-        return new ArrayList<>(usersSortedByRating);
-    }
-
-    private void loadUsers() throws IOException {
-        try (BufferedReader reader = new BufferedReader(new FileReader(USERS_FILE))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] userInfo = line.split(";");
-                String username = userInfo[0];
-                String hashedPassword = userInfo[1];
-                String salt = userInfo[2];
-                int rating = Integer.parseInt(userInfo[3]);
-                User user = new User(username, hashedPassword, salt, rating);
-                users.put(username, user);
-                usersSortedByRating.add(user);
-            }
-        }
-    }
-
-    public synchronized void saveUsers() throws IOException {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(USERS_FILE))) {
-            for (User user : users.values()) {
-                writer.write(user.toCSV());
-                writer.newLine();
-            }
-        }
-    }
-
-    public synchronized User getUser(String username) {
-        return users.get(username);
-    }
-
-    public synchronized boolean checkUserPassword(String username, String password) {
-        String hashedPassword;
-        String salt;
-        User u;
-        u = users.get(username);
-
-        if (u == null) {
-            return false;
-        }
-        hashedPassword = u.getHashedPassword();
-        salt = u.getSalt();
+    private void load() {
+        
         try {
-            return hashedPassword.equals(hashPassword(password, salt));
-        } catch (NoSuchAlgorithmException e) {
-            System.err.println("Error checking user password " + e.getMessage());
-            return false;
-        }
-    }
-
-    public synchronized boolean storeNewUser(String username, String password) {
-        try {
-            String salt = generateSalt();
-            String hashedPassword = hashPassword(password, salt);
-            User user = new User(username, hashedPassword, salt);
-            synchronized (this) {
-                if (existsUsername(username)) {
-                    return false;
-                }
-                usersSortedByRating.add(user); // nobody else can access the Database so the user is not accessible yet
-                users.put(username, user);
-                return true;
+            Scanner scanner = new Scanner(new File(this.path));
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                String[] parts = line.split(this.separator);
+                this.users.add(new User(parts[0], parts[1], Integer.parseInt(parts[2])));
             }
-        } catch (NoSuchAlgorithmException e) { // | IOException e
-            System.err.println("Error storing new user " + e.getMessage());
-            return false;
+            scanner.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    public synchronized boolean existsUsername(String username) {
-        return users.containsKey(username);
-    }
+    /**
+     * Saves the users to the csv file.
+     */
+    public void save() {
+        lock.lock();
 
-    public synchronized boolean updateRating(String username, int newRating) {
-        User user = getUser(username);
-        if (user == null) {
-            return false;
+        try {
+            FileWriter writer = new FileWriter(this.path);
+            for (User user : this.users) {
+                writer.write(user.getUsername() + this.separator + user.getPassword() + this.separator + user.getRating() + "\n");
+            }
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        usersSortedByRating.remove(user);
-        user.setRating(newRating);
-        usersSortedByRating.add(user);
-        return true;
+
+        lock.unlock();
     }
 
+    /**
+     * Adds a user to the database.
+     * 
+     * @param user The user to add.
+     */
+    public void addUser(User user) {
+        
+        this.users.add(user);
+
+        // Save the users to the file
+        this.save();
+    }
+
+    /**
+     * Gets a user from the database.
+     * 
+     * @param username The username of the user.
+     * @return The user with the given username.
+     */
+    public User getUser(String username) {
+        
+        for (User user : this.users) {
+            if (user.getUsername().equals(username)) {
+                return user;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Checks if a user exists in the database.
+     * 
+     * @param username The username of the user.
+     * @return True if the user exists, false otherwise.
+     */
+    public boolean userExists(String username) {
+        
+        return this.getUser(username) != null;
+    }
+
+    /**
+     * Checks if the password is correct for a given user.
+     * 
+     * @param username The username of the user.
+     * @param password The password to check.
+     * @return True if the password is correct, false otherwise.
+     */
+    public boolean checkPassword(String username, String password) {
+        
+        User user = this.getUser(username);
+        return user != null && user.getPassword().equals(password);
+    }
+
+    /**
+     * Generates a token for a user.
+     * 
+     * @param username The username of the user.
+     * @return The generated token.
+     */
     public String generateToken(String username) {
-        User user = users.get(username);
+        User user = this.getUser(username);
         String token = UUID.randomUUID().toString();
+        
         user.setToken(token);
+        
         return token;
     }
 
-    public synchronized boolean checkUserToken(String username, String token) {
-        return users.get(username).getToken().equals(token);
+    /**
+     * Checks if a token is valid for a given user.
+     * 
+     * @param username The username of the user.
+     * @param token The token to check.
+     * @return True if the token is valid, false otherwise.
+     */
+    public boolean checkUserToken(String username, String token) {
+        return this.getUser(username).getToken().equals(token);
     }
 }

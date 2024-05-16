@@ -27,9 +27,6 @@ public class Server {
             System.out.println(e.getMessage());
         } catch (Exception e) {
             throw new RuntimeException(e);
-        } finally {
-            System.out.println("FINALLY");
-            Auth.saveUsers();
         }
     }
 }

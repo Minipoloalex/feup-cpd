@@ -33,7 +33,7 @@ public final class RegisterState extends State {
 
     @Override
     public void render() {
-        if (username == null) {
+        if (this.username == null) {
             out.println("Introduce the username to register");
         } else {
             out.println("Introduce the password to register");
