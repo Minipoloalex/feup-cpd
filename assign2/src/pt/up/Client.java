@@ -5,36 +5,24 @@ import java.net.*;
 
 public class Client {
     public static void main(String[] args) {
-        if (args.length < 2) {
-            System.err.println("Usage: java Client <hostname> <port>");
-            System.exit(1);
-        }
         System.out.println("Starting client");
 
-        String hostname = args[0];
-        int port = Integer.parseInt(args[1]);
+        String hostname = "localhost";
+        int port = 8000;
 
-        try (Socket socket = new Socket(hostname, port)) {
-            OutputStream output = socket.getOutputStream();
-            PrintWriter writer = new PrintWriter(output, true);
-            BufferedReader stdinReader = new BufferedReader(new InputStreamReader(System.in));
-            InputStream input = socket.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-
+        try (Connection connection = new Connection(hostname, port)) {
             while (true) {
-                String response;
-                while ((response = reader.readLine()) != null && !response.isEmpty()) {
-                    System.out.println(response);
+                connection.sendRequest(Message.ok());
+                Message response = connection.receiveRequest();
+
+                if (response.isError()) {
+                    System.out.println("Error: " + response.getContent());
+                } else {
+                    System.out.println("Server response: " + response);
                 }
 
-                String expression = stdinReader.readLine();
-                writer.println(expression);
-                /*
-                while ((expression = stdinReader.readLine()) != null && !expression.isEmpty()) {
-                    writer.println(expression);
+                while (true) {
                 }
-                writer.println();
-                 */
             }
         } catch (UnknownHostException ex) {
             System.out.println("Server not found: " + ex.getMessage());
