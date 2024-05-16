@@ -12,7 +12,7 @@ public class Authentication {
      */
     public Authentication() {
         
-        this.database = new Database("storage/db.csv");
+        this.database = new Database("src/pt/up/storage/db.csv");
     }
 
     /**
