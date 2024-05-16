@@ -1,33 +1,38 @@
 package pt.up.states;
-import java.io.PrintWriter;
 
+import pt.up.Connection;
 
-public class AuthMenuState extends State {
-    public AuthMenuState(PrintWriter out) {
-        super(out);
+public final class AuthMenuState extends State {
+    public AuthMenuState(Connection connection) {
+        super(connection);
+        onEnter();
     }
 
+    @Override
     public State handle(String inputLine) {
         if (inputLine.equals("0")) {
-            // TODO
-            return null;
+            return null; // Exit game
         }
-        else if (inputLine.equals("1")) {
-            return new LoginState(out);
-        } else if (inputLine.equals("2")) {
-            return new RegisterState(out);
+        if (inputLine.equals("1")) {
+            return new LoginState(this.connection);
         }
-        else {
-            out.println("Invalid option");
+        if (inputLine.equals("2")) {
+            System.out.println("Handling input: " + inputLine);
+            return new RegisterState(this.connection);
         }
-        return null;
+        out.println("Invalid option");
+        return this;
     }
+
+    @Override
     public void render() {
         out.println("Select an option");
         out.println("0. Exit");
         out.println("1. Login");
         out.println("2. Register");
     }
+
+    @Override
     public void onEnter() {
         out.println("Welcome!");
         out.println("Authentication is required to play the game");

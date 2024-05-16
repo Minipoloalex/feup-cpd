@@ -33,7 +33,31 @@ public class Protocol implements AutoCloseable {
     }
 
     public Message receiveRequest() {
-        return receive().orElse(Message.error("Server did not respond."));
+        return receive().orElse(Message.error("Peer did not respond."));
+    }
+
+    public Message register(String username, String password) {
+        send(Message.register(username, password));
+        return receive().orElse(Message.error("Peer did not respond."));
+    }
+
+    public Message login(String username, String password) {
+        send(Message.login(username, password));
+        return receive().orElse(Message.error("Peer did not respond."));
+    }
+
+    public Message playNormalGame(String username, String token) {
+        send(Message.normal(username, token));
+        return listen();
+    }
+
+    public Message listen() {
+        while (true) {
+            Optional<Message> message = receive();
+            if (message.isPresent()) {
+                return message.get();
+            }
+        }
     }
 
     private void send(Message message) {
@@ -46,7 +70,7 @@ public class Protocol implements AutoCloseable {
             BufferedReader reader = new BufferedReader(new InputStreamReader(input));
             return Optional.of(Message.parse(reader.readLine()));
         } catch (SocketTimeoutException ex) {
-            System.out.println("Timeout: " + ex.getMessage());
+            // System.out.println("Timeout: " + ex.getMessage());
         } catch (IOException ex) {
             System.out.println("I/O error: " + ex.getMessage());
         }

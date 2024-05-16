@@ -1,19 +1,24 @@
 package pt.up.states;
 
 import java.io.PrintWriter;
-import pt.up.User;
+import pt.up.Connection;
 
 public abstract class State {
     protected final PrintWriter out;
-    protected User user;
+    protected final Connection connection;
+    protected String username;
+    protected String token;
 
-    public State(PrintWriter out) {
-        this.out = out;
+    public State(Connection connection) {
+        this.out = new PrintWriter(System.out, true);
+        this.connection = connection;
     }
 
-    public State(PrintWriter out, User u) {
-        this.out = out;
-        this.user = u;
+    public State(Connection connection, String username, String token) {
+        this.out = new PrintWriter(System.out, true);
+        this.connection = connection;
+        this.username = username;
+        this.token = token;
     }
 
     /**
@@ -29,7 +34,7 @@ public abstract class State {
 
     public abstract void onExit();
 
-    public User getUser() {
-        return this.user;
+    public String getToken() {
+        return token;
     }
 }

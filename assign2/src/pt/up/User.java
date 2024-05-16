@@ -4,6 +4,7 @@ public class User implements Comparable<User> {
     private final String username;
     private final String hashedPassword;
     private final String salt;
+    private String token;
     private int rating;
 
     public User(String username, String password, String salt) {
@@ -15,6 +16,14 @@ public class User implements Comparable<User> {
         this.hashedPassword = password;
         this.salt = salt;
         this.rating = rating;
+    }
+
+    public synchronized void setToken(String token) {
+        this.token = token;
+    }
+
+    public synchronized String getToken() {
+        return this.token;
     }
 
     public synchronized String getHashedPassword() {

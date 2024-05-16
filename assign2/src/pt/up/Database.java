@@ -1,9 +1,9 @@
 package pt.up;
 
 import java.io.*;
-import java.security.SecureRandom;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.*;
 
 public class Database {
@@ -67,7 +67,8 @@ public class Database {
 
         List<User> users = db.getUsersSortedByRating();
         assert users.size() == 2 : "There should be 2 users in the database";
-        assert users.getFirst().getUsername().equals("user2") : "The first user sorted ascending by rating should be user2";
+        assert users.getFirst().getUsername().equals("user2")
+                : "The first user sorted ascending by rating should be user2";
 
         db.saveUsers();
     }
@@ -105,13 +106,12 @@ public class Database {
         return users.get(username);
     }
 
-    public boolean checkUserPassword(String username, String password) {
+    public synchronized boolean checkUserPassword(String username, String password) {
         String hashedPassword;
         String salt;
         User u;
-        synchronized (this) {
-            u = users.get(username);
-        }
+        u = users.get(username);
+
         if (u == null) {
             return false;
         }
@@ -125,7 +125,7 @@ public class Database {
         }
     }
 
-    public boolean storeNewUser(String username, String password) {
+    public synchronized boolean storeNewUser(String username, String password) {
         try {
             String salt = generateSalt();
             String hashedPassword = hashPassword(password, salt);
@@ -134,11 +134,11 @@ public class Database {
                 if (existsUsername(username)) {
                     return false;
                 }
-                usersSortedByRating.add(user);  // nobody else can access the Database so the user is not accessible yet
+                usersSortedByRating.add(user); // nobody else can access the Database so the user is not accessible yet
                 users.put(username, user);
                 return true;
             }
-        } catch (NoSuchAlgorithmException e) {    //  | IOException e
+        } catch (NoSuchAlgorithmException e) { // | IOException e
             System.err.println("Error storing new user " + e.getMessage());
             return false;
         }
@@ -157,5 +157,16 @@ public class Database {
         user.setRating(newRating);
         usersSortedByRating.add(user);
         return true;
+    }
+
+    public String generateToken(String username) {
+        User user = users.get(username);
+        String token = UUID.randomUUID().toString();
+        user.setToken(token);
+        return token;
+    }
+
+    public synchronized boolean checkUserToken(String username, String token) {
+        return users.get(username).getToken().equals(token);
     }
 }

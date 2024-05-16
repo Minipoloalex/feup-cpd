@@ -1,41 +1,34 @@
 package pt.up.states;
 
-import pt.up.Auth;
+import pt.up.Connection;
+import pt.up.Message;
 
-import java.io.PrintWriter;
-
-public class RegisterState extends State {
+public final class RegisterState extends State {
     private String username = null;
 
-    public RegisterState(PrintWriter out) {
-        super(out, null);
-    }
-
-    private void handleUsername(String inputLine) {
-        if (Auth.existsUsername(inputLine)) {
-            out.println("Username already exists");
-        } else {
-            username = inputLine;
-        }
+    public RegisterState(Connection connection) {
+        super(connection);
+        onEnter();
     }
 
     @Override
     public State handle(String inputLine) {
         if (username == null) {
-            if (inputLine.isEmpty()) {
-                return new AuthMenuState(out);
+            if (inputLine.equals("back")) {
+                return new AuthMenuState(this.connection);
             }
-            this.handleUsername(inputLine);
+            username = inputLine;
         } else {
-            if (Auth.register(username, inputLine)) {
+            Message response = connection.register(username, inputLine);
+            if (response.isOk()) {
                 out.println("Registration successful");
-                return new AuthMenuState(out);
+                return new LoginState(this.connection);
             } else {
-                out.println("Registration failed");
+                out.println(response);
+                username = null;
             }
-            username = null;
         }
-        return null;
+        return this;
     }
 
     @Override
@@ -49,8 +42,8 @@ public class RegisterState extends State {
 
     @Override
     public void onEnter() {
-        out.println("Register to play the game");
-        out.println("Type an empty line to go back to the Login/Register menu");
+        out.println("\n\n\nRegister to play the game");
+        out.println("Type 'back' to go back to the Login/Register menu");
     }
 
     @Override

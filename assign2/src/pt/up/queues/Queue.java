@@ -1,4 +1,4 @@
-package pt.up.Queues;
+package pt.up.queues;
 
 import pt.up.User;
 
@@ -12,4 +12,6 @@ public abstract class Queue {
     public abstract boolean contains(User user);
 
     public abstract int getPlayers();
+
+    public abstract boolean canStartGame(int players);
 }

@@ -1,9 +1,8 @@
-package pt.up.Queues;
-
-import pt.up.User;
+package pt.up.queues;
 
 import java.util.LinkedList;
 import java.util.List;
+import pt.up.User;
 
 public class NormalQueue extends Queue {
     private final List<User> _queue;
@@ -38,5 +37,10 @@ public class NormalQueue extends Queue {
     @Override
     public int getPlayers() {
         return this._queue.size();
+    }
+
+    @Override
+    public boolean canStartGame(int players) {
+        return this.getPlayers() >= players;
     }
 }

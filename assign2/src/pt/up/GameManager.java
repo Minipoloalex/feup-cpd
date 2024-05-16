@@ -3,7 +3,7 @@ package pt.up;
 import java.util.LinkedList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import pt.up.Queues.*;
+import pt.up.queues.*;
 
 public class GameManager implements Runnable {
     public static final int GAMEPLAYERS = 2;
@@ -15,7 +15,7 @@ public class GameManager implements Runnable {
 
     public GameManager() {
         this.normalQueue = new NormalQueue();
-        this.gameNormalPool = Executors.newCachedThreadPool();
+        this.gameNormalPool = Executors.newVirtualThreadPerTaskExecutor();
         // this.gameRankedPool = Executors.newCachedThreadPool();
     }
 
@@ -34,8 +34,7 @@ public class GameManager implements Runnable {
     }
 
     public void manage() {
-        if (this.normalQueue.getPlayers() >= GAMEPLAYERS) {
-            // start game
+        if (this.normalQueue.canStartGame(GAMEPLAYERS)) {
             var players = this.getGamePlayers();
             this.gameNormalPool.execute(new Game(players));
         }
@@ -50,7 +49,7 @@ public class GameManager implements Runnable {
                 }
                 this.manage();
             }
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
