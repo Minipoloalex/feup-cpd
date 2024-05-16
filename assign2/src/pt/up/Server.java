@@ -1,7 +1,7 @@
 package pt.up;
 
-import java.net.*;
 import java.io.*;
+import java.net.*;
 
 public class Server {
     private final ServerSocket serverSocket;
@@ -21,26 +21,16 @@ public class Server {
     }
 
     public static void main(String[] args) {
-        // if (args.length != 1) {
-        // System.err.println("Usage: java Server <port>");
-        // System.exit(1);
-        // }
-
         System.out.println("Starting server");
 
         try {
-            // Server server = new Server(Integer.parseInt(args[0]));
             Server server = new Server(8000);
             server.start();
 
             while (true) {
                 Socket clientSocket = server.serverSocket.accept();
-
-                // Accept incoming connections
-                // Start a service thread
-                Thread.ofVirtual().start(new ServerThread(clientSocket));
+                Thread.ofVirtual().start(new ClientConnection(clientSocket));
             }
-
         } catch (IOException e) {
             System.out.println("Exception caught when trying to listen for a connection");
             System.out.println(e.getMessage());
