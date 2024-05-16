@@ -18,14 +18,6 @@ public class User implements Comparable<User> {
         this.rating = rating;
     }
 
-    public synchronized void setToken(String token) {
-        this.token = token;
-    }
-
-    public synchronized String getToken() {
-        return this.token;
-    }
-
     public synchronized String getHashedPassword() {
         return this.hashedPassword;
     }
@@ -56,6 +48,14 @@ public class User implements Comparable<User> {
 
     public synchronized void updateRating(int ratingDiff) {
         rating += ratingDiff;
+    }
+
+    public synchronized String getToken() {
+        return this.token;
+    }
+
+    public synchronized void setToken(String token) {
+        this.token = token;
     }
 
     @Override

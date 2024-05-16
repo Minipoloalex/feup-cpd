@@ -48,6 +48,10 @@ public class Message {
         return new Message(MessageType.RANKED, user + " " + token);
     }
 
+    public static Message confirm(String content) {
+        return new Message(MessageType.CONFIRM, content);
+    }
+
     public boolean isOk() {
         return type == MessageType.OK;
     }

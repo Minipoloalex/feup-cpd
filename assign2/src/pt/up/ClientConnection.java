@@ -5,16 +5,20 @@ import java.net.*;
 import java.util.ArrayList;
 
 public class ClientConnection implements Runnable {
-    private final Socket clientSocket;
+    private final Socket socket;
+    private final GameManager gameManager;
     private final Database database;
+    private Connection connection;
 
-    public ClientConnection(Socket clientSocket) throws IOException {
-        this.clientSocket = clientSocket;
+    public ClientConnection(Socket clientSocket, GameManager gameManager) throws IOException {
+        this.socket = clientSocket;
+        this.gameManager = gameManager;
         this.database = new Database();
     }
 
     private Message handle(Message message) {
         ArrayList<String> data = message.getContentAsList();
+        System.out.println(message);
 
         try {
             switch (message.getType()) {
@@ -24,6 +28,7 @@ public class ClientConnection implements Runnable {
                     if (!database.storeNewUser(username, password)) {
                         return Message.error("Username already exists");
                     }
+                    return Message.ok();
                 }
 
                 case MessageType.LOGIN -> {
@@ -36,7 +41,6 @@ public class ClientConnection implements Runnable {
                     String token = database.generateToken(username);
                     return Message.ok(token);
                 }
-                default -> throw new AssertionError();
 
                 case MessageType.NORMAL -> {
                     String username = data.get(0), token = data.get(1);
@@ -45,26 +49,36 @@ public class ClientConnection implements Runnable {
                         return Message.error("Invalid token");
                     }
 
-                    return Message.ok("Confirm game (y/n):");
+                    gameManager.addNormalPlayer(new Player(username, token, connection));
+                    return Message.ok();
                 }
+
+                default -> throw new AssertionError();
             }
         } catch (Exception e) {
             return Message.error("Error while processing request");
         }
+    }
 
-        // default response OK
-        return Message.ok();
+    private synchronized void checkForGames(Message request) throws InterruptedException {
+        if (request.getType() == MessageType.NORMAL) {
+            wait(2000); // wait for last player to process previous messages
+            System.out.println("Checking for games");
+            gameManager.manage();
+        }
     }
 
     @Override
     public void run() {
-        try (Connection connection = new Connection(clientSocket)) {
+        try {
+            connection = new Connection(socket);
             while (true) {
                 Message request = connection.listen();
                 System.out.println("Received request: " + request);
                 Message answer = handle(request);
                 connection.sendRequest(answer);
                 System.out.println("Sent answer: " + answer);
+                checkForGames(request);
             }
         } catch (Exception e) {
             System.err.println("Exception caught when listening for a connection");

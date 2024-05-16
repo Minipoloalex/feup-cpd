@@ -2,36 +2,35 @@ package pt.up.queues;
 
 import java.util.LinkedList;
 import java.util.List;
-import pt.up.User;
 
-public class NormalQueue extends Queue {
-    private final List<User> _queue;
+public class NormalQueue<T> extends Queue<T> {
+    private final List<T> _queue;
 
     public NormalQueue() {
         this._queue = new LinkedList<>();
     }
 
     @Override
-    public boolean add(User user) {
-        if (this.contains(user)) {
-            return false; // User already in queue
+    public boolean add(T x) {
+        if (this.contains(x)) {
+            return false; // T already in queue
         }
-        return this._queue.add(user);
+        return this._queue.add(x);
     }
 
     @Override
-    public boolean remove(User user) {
-        return this._queue.remove(user);
+    public boolean remove(T x) {
+        return this._queue.remove(x);
     }
 
     @Override
-    public User pop() {
+    public T pop() {
         return this._queue.remove(0);
     }
 
     @Override
-    public boolean contains(User user) {
-        return this._queue.contains(user);
+    public boolean contains(T x) {
+        return this._queue.contains(x);
     }
 
     @Override

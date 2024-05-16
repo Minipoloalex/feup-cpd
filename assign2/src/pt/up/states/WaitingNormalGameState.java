@@ -15,11 +15,24 @@ public final class WaitingNormalGameState extends State {
     @Override
     public State handle(String inputLine) {
         if (inputLine.equals("back") || (accept && inputLine.equals("n"))) {
-            // send message to server to cancel the game
+            connection.sendRequest(Message.error("Game refused"));
+            Message response = connection.listen();
+            System.out.println(response.getContent());
             return new PlayMenuState(connection, username, token);
         }
         if (inputLine.equals("y") && accept) {
-            // start game
+            System.out.println("Game accepted");
+            connection.sendRequest(Message.ok());
+            Message response = connection.listen();
+
+            if (response.isOk()) {
+                System.out.println("Game started");
+                System.exit(0);
+                // return new NormalGameState(connection, username, token);
+            } else {
+                System.out.println(response.getContent());
+                return new PlayMenuState(connection, username, token);
+            }
         }
         return this;
     }
@@ -33,8 +46,19 @@ public final class WaitingNormalGameState extends State {
     public void onEnter() {
         out.println("\n\n\nWaiting for a game to start");
         waitForGame = Thread.ofVirtual().start(() -> {
+            out.println("Sent play request");
             Message response = connection.playNormalGame(username, token);
-            System.out.println(response.getContent());
+
+            if (response.isError()) {
+                out.println(response.getContent());
+                return;
+            } else {
+                out.println("Waiting for game confirmation");
+            }
+
+            Message gameConfirmation = connection.listen();
+            System.out.println("Received game confirmation");
+            System.out.println(gameConfirmation.getContent());
             accept = true;
         });
     }

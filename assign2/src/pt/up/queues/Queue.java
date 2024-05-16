@@ -1,15 +1,13 @@
 package pt.up.queues;
 
-import pt.up.User;
+public abstract class Queue<T> {
+    public abstract boolean add(T user);
 
-public abstract class Queue {
-    public abstract boolean add(User user);
+    public abstract boolean remove(T user);
 
-    public abstract boolean remove(User user);
+    public abstract T pop();
 
-    public abstract User pop();
-
-    public abstract boolean contains(User user);
+    public abstract boolean contains(T user);
 
     public abstract int getPlayers();
 
