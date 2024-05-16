@@ -1,66 +1,84 @@
 package pt.up;
 
 public class User implements Comparable<User> {
+    
     private final String username;
-    private final String hashedPassword;
-    private final String salt;
+    private final String password;
     private int rating;
 
-    public User(String username, String password, String salt) {
-        this(username, password, salt, 1000);
+    /**
+     * Constructor for the User class.
+     * 
+     * @param username The username of the user.
+     * @param password The password of the user.
+     */
+    public User(String username, String password) {
+        
+        this.username = username;
+        this.password = password;
+        this.rating = 1000;
     }
 
-    public User(String username, String password, String salt, int rating) {
+    /**
+     * Constructor for the User class.
+     * 
+     * @param username The username of the user.
+     * @param password The password of the user.
+     * @param rating The rating of the user.
+     */
+    public User(String username, String password, int rating) {
+        
         this.username = username;
-        this.hashedPassword = password;
-        this.salt = salt;
+        this.password = password;
         this.rating = rating;
     }
 
-    public synchronized String getHashedPassword() {
-        return this.hashedPassword;
-    }
-
-    public synchronized String getSalt() {
-        return this.salt;
-    }
-
-    public synchronized boolean checkPassword(String encryptedPassword) {
-        return this.hashedPassword.equals(encryptedPassword);
-    }
-
-    public synchronized String getUsername() {
+    /**
+     * Gets the user's username.
+     * 
+     * @return The username of the user.
+     */
+    public String getUsername() {
+        
         return this.username;
     }
 
-    public synchronized String toCSV() {
-        return String.format("%s;%s;%s;%d", username, salt, hashedPassword, rating);
+    /**
+     * Gets the user's password.
+     * 
+     * @return The password of the user.
+     */
+    public String getPassword() {
+        
+        return this.password;
     }
 
-    public synchronized int getRating() {
+    /**
+     * Gets the user's rating.
+     * 
+     * @return The rating of the user.
+     */
+    public int getRating() {
+        
         return this.rating;
     }
 
-    public synchronized void setRating(int rating) {
+    /**
+     * Sets the user's rating.
+     * 
+     * @param rating The new rating of the user.
+     */
+    public void setRating(int rating) {
+        
         this.rating = rating;
     }
 
-    public synchronized void updateRating(int ratingDiff) {
-        rating += ratingDiff;
-    }
-
+    /**
+     * Compares two users by their username.
+     */
     @Override
-    public synchronized int compareTo(User o) {
-        int myRating = this.rating;
-        int otherRating = o.getRating();
-
-        if (myRating == otherRating) {
-            // If ratings are equal, compare usernames to maintain a consistent ordering
-            return this.username.compareTo(o.getUsername());
-        } else {
-            // Compare based on ratings
-            return Integer.compare(myRating, otherRating);
-        }
+    public int compareTo(User other) {
+        
+        return this.username.compareTo(other.username);
     }
-
 }

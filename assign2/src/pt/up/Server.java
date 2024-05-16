@@ -5,6 +5,7 @@ import java.net.*;
 
 public class Server {
     private final ServerSocket serverSocket;
+    private final Authentication auth = new Authentication();
     private final GameManager gameManager;
 
     public Server(int port) throws IOException {
@@ -38,7 +39,6 @@ public class Server {
             throw new RuntimeException(e);
         } finally {
             System.out.println("FINALLY");
-            Auth.saveUsers();
         }
     }
 }

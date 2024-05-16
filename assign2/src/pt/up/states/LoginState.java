@@ -1,20 +1,21 @@
 package pt.up.states;
 
-import pt.up.Auth;
-import pt.up.User;
-
 import java.io.PrintWriter;
 
+import pt.up.Authentication;
+
 public class LoginState extends State {
-    private String username = null;
+    
+    private static final Authentication auth = new Authentication();
+    private String username;
 
     public LoginState(PrintWriter out) {
         super(out);
     }
 
     private void handleUsername(String inputLine) {
-        if (Auth.existsUsername(inputLine)) {
-            username = inputLine;
+        if (auth.usernameExists(inputLine)) {
+            this.username = inputLine;
         } else {
             out.println("Username does not exist");
         }
@@ -23,19 +24,19 @@ public class LoginState extends State {
     @Override
     public State handle(String inputLine) {
         System.out.println("Handling input: " + inputLine);
-        if (username == null) {
+        if (this.username == null) {
             if (inputLine.isEmpty()) {
                 return new AuthMenuState(out);
             }
             this.handleUsername(inputLine);
         } else {
             if (inputLine.isEmpty()) {
-                username = null;
-            } else if (Auth.login(username, inputLine)) {
+                this.username = null;
+            } else if (auth.login(this.username, inputLine)) {
                 out.println("Authentication successful");
-                return new PlayMenuState(out, Auth.getUser(username));
+                return new PlayMenuState(out, auth.getUser(username));
             } else {
-                username = null;
+                this.username = null;
                 out.println("Authentication failed");
             }
         }
