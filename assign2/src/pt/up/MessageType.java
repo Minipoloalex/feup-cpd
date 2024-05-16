@@ -1,7 +1,7 @@
 package pt.up;
 
 public enum MessageType {
-    PING, OK, ERROR, REGISTER, LOGIN, LOGOUT, NORMAL, RANKED, ACCEPT, CONFIRM;
+    PING, OK, ERROR, REGISTER, LOGIN, LOGOUT, NORMAL, RANKED, ACCEPT, CONFIRM, LEAVE;
 
     public static MessageType fromString(String message) {
         switch (message) {
@@ -34,6 +34,9 @@ public enum MessageType {
             }
             case "CONFIRM" -> {
                 return CONFIRM;
+            }
+            case "LEAVE" -> {
+                return LEAVE;
             }
             default -> throw new IllegalArgumentException("Invalid message: " + message);
         }

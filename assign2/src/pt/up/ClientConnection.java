@@ -13,12 +13,11 @@ public class ClientConnection implements Runnable {
     public ClientConnection(Socket clientSocket, GameManager gameManager) throws IOException {
         this.socket = clientSocket;
         this.gameManager = gameManager;
-        this.database = new Database("src/pt/up/storage/db.csv");
+        this.database = Database.getInstance();
     }
 
     private Message handle(Message message) {
         ArrayList<String> data = message.getContentAsList();
-        System.out.println(message);
 
         try {
             switch (message.getType()) {
@@ -57,6 +56,17 @@ public class ClientConnection implements Runnable {
                     return Message.ok();
                 }
 
+                case MessageType.LEAVE -> {
+                    String username = data.get(0), token = data.get(1);
+
+                    if (!database.checkUserToken(username, token)) {
+                        return Message.error("Invalid token");
+                    }
+
+                    gameManager.removeNormalPlayer(new Player(username, token, connection));
+                    return Message.ok();
+                }
+
                 default -> throw new AssertionError();
             }
         } catch (Exception e) {
@@ -66,7 +76,7 @@ public class ClientConnection implements Runnable {
 
     private synchronized void checkForGames(Message request) throws InterruptedException {
         if (request.getType() == MessageType.NORMAL) {
-            wait(2000); // wait for last player to process previous messages
+            System.out.println("Players in q: " + gameManager.getNormalPlayers());
             System.out.println("Checking for games");
             gameManager.manage();
         }
@@ -84,9 +94,16 @@ public class ClientConnection implements Runnable {
                 System.out.println("Sent answer: " + answer);
                 checkForGames(request);
             }
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             System.err.println("Exception caught when listening for a connection");
             System.err.println(e.getMessage());
+        } finally {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                System.err.println("Exception caught when closing the socket");
+                System.err.println(e.getMessage());
+            }
         }
     }
 }

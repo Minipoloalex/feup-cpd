@@ -2,11 +2,15 @@ package pt.up;
 
 import java.io.*;
 import java.net.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 /* This class is basically a Protocol Facade */
 
 public class Connection implements AutoCloseable {
     private Protocol protocol;
+    private String hostname;
+    private int port;
+    private final ReentrantLock lock = new ReentrantLock();
 
     public Connection(Socket socket) {
         this.protocol = new Protocol(socket);
@@ -14,6 +18,12 @@ public class Connection implements AutoCloseable {
 
     public Connection(String hostname, int port) throws IOException {
         this(new Socket(hostname, port));
+        this.hostname = hostname;
+        this.port = port;
+    }
+
+    public Connection replicate() throws IOException {
+        return new Connection(this.hostname, this.port);
     }
 
     /**
@@ -23,7 +33,12 @@ public class Connection implements AutoCloseable {
      */
 
     public void sendRequest(Message message) {
-        protocol.sendRequest(message);
+        lock.lock();
+        try {
+            protocol.sendRequest(message);
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -33,7 +48,12 @@ public class Connection implements AutoCloseable {
      *         server did not respond in time)
      */
     public Message receiveRequest() {
-        return protocol.receiveRequest();
+        lock.lock();
+        try {
+            return protocol.receiveRequest();
+        } finally {
+            lock.unlock();
+        }
     }
 
     public Message register(String username, String password) {
@@ -49,11 +69,20 @@ public class Connection implements AutoCloseable {
     }
 
     public Message listen() {
-        return protocol.listen();
+        lock.lock();
+        try {
+            return protocol.listen();
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public void close() {
         protocol.close();
+    }
+
+    public Socket getSocket() {
+        return this.protocol.getSocket();
     }
 }
