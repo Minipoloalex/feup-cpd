@@ -5,7 +5,7 @@ import java.net.*;
 import java.util.Optional;
 
 public class Protocol implements AutoCloseable {
-    private static final int TIMEOUT = 3000;
+    private static final int TIMEOUT = 10000;
     private Socket socket;
     private OutputStream output;
     private PrintWriter writer;
@@ -73,6 +73,7 @@ public class Protocol implements AutoCloseable {
             // System.out.println("Timeout: " + ex.getMessage());
         } catch (IOException ex) {
             System.out.println("I/O error: " + ex.getMessage());
+            return Optional.empty();
         }
         return Optional.empty();
     }
@@ -84,5 +85,9 @@ public class Protocol implements AutoCloseable {
         } catch (IOException ex) {
             System.out.println("I/O error: " + ex.getMessage());
         }
+    }
+
+    public Socket getSocket() {
+        return socket;
     }
 }

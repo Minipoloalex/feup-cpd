@@ -52,6 +52,10 @@ public class Message {
         return new Message(MessageType.CONFIRM, content);
     }
 
+    public static Message leave(String user, String token) {
+        return new Message(MessageType.LEAVE, user + " " + token);
+    }
+
     public boolean isOk() {
         return type == MessageType.OK;
     }

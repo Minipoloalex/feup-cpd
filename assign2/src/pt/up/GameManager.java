@@ -19,8 +19,16 @@ public class GameManager {
         // this.gameRankedPool = Executors.newCachedThreadPool();
     }
 
+    public int getNormalPlayers() {
+        return this.normalQueue.getPlayers();
+    }
+
     public boolean addNormalPlayer(Player user) {
         return this.normalQueue.add(user);
+    }
+
+    public boolean removeNormalPlayer(Player user) {
+        return this.normalQueue.remove(user);
     }
 
     public LinkedList<Player> getGamePlayers() {
