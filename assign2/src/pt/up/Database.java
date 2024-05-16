@@ -8,6 +8,9 @@ import java.io.IOException;
 import java.io.FileWriter;
 import java.util.Scanner;
 import java.util.concurrent.locks.ReentrantLock;
+import java.security.SecureRandom;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * Class that represents a database of users.
@@ -56,7 +59,7 @@ public class Database {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 String[] parts = line.split(this.separator);
-                this.users.add(new User(parts[0], parts[1], Integer.parseInt(parts[2])));
+                this.users.add(new User(parts[0], parts[1], parts[2], Integer.parseInt(parts[3])));
             }
             scanner.close();
         } catch (IOException e) {
@@ -73,7 +76,7 @@ public class Database {
         try {
             FileWriter writer = new FileWriter(this.path);
             for (User user : this.users) {
-                writer.write(user.getUsername() + this.separator + user.getPassword() + this.separator + user.getRating() + "\n");
+                writer.write(user.getUsername() + this.separator + user.getPassword() + this.separator + user.getSalt() + this.separator + user.getRating() + "\n");
             }
             writer.close();
         } catch (IOException e) {
@@ -90,6 +93,18 @@ public class Database {
      */
     public void addUser(User user) {
         
+        // Check if the user already exists
+        if (this.userExists(user.getUsername())) {
+            return;
+        }
+        
+        // Hash the password
+        String salt = generateSalt();
+        String hashedPassword = hashPassword(user.getPassword(), salt);
+        user.setSalt(salt);
+        user.setPassword(hashedPassword);
+
+        // Add the user to the database
         this.users.add(user);
 
         // Save the users to the file
@@ -133,7 +148,9 @@ public class Database {
     public boolean checkPassword(String username, String password) {
         
         User user = this.getUser(username);
-        return user != null && user.getPassword().equals(password);
+        String hashedPassword = hashPassword(password, user.getSalt());
+        
+        return user.getPassword().equals(hashedPassword);
     }
 
     /**
@@ -143,6 +160,7 @@ public class Database {
      * @return The generated token.
      */
     public String generateToken(String username) {
+        
         User user = this.getUser(username);
         String token = UUID.randomUUID().toString();
         
@@ -159,6 +177,59 @@ public class Database {
      * @return True if the token is valid, false otherwise.
      */
     public boolean checkUserToken(String username, String token) {
+        
         return this.getUser(username).getToken().equals(token);
+    }
+
+    /**
+     * Generate salt for password hashing.
+     * 
+     * @return The generated salt.
+     */
+    public static String generateSalt() {
+        
+        SecureRandom random = new SecureRandom();
+        byte[] salt = new byte[16];
+        random.nextBytes(salt);
+
+        return bytesToHex(salt);
+    }
+
+    /**
+     * Hashes a password with a given salt.
+     * 
+     * @param password The password to hash.
+     * @param salt The salt to use.
+     * @return The hashed password.
+     */
+    public static String hashPassword(String password, String salt) {
+
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            md.update(salt.getBytes());
+            byte[] bytes = md.digest(password.getBytes());
+            
+            return bytesToHex(bytes);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        
+        return null;
+    }
+
+    /**
+     * Converts bytes to a hexadecimal string.
+     * 
+     * @param bytes The bytes to convert.
+     * @return The hexadecimal string.
+     */
+    public static String bytesToHex(byte[] bytes) {
+        
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+        
+        return sb.toString();
     }
 }

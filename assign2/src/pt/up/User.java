@@ -3,7 +3,8 @@ package pt.up;
 public class User implements Comparable<User> {
     
     private final String username;
-    private final String password;
+    private String password;
+    private String salt;
     private int rating;
     private String token;
 
@@ -35,6 +36,22 @@ public class User implements Comparable<User> {
     }
 
     /**
+     * Constructor for the User class.
+     * 
+     * @param username The username of the user.
+     * @param password The password of the user.
+     * @param salt The salt of the user.
+     * @param rating The rating of the user.
+     */
+    public User(String username, String password, String salt, int rating) {
+        
+        this.username = username;
+        this.password = password;
+        this.salt = salt;
+        this.rating = rating;
+    }
+    
+    /**
      * Gets the user's username.
      * 
      * @return The username of the user.
@@ -55,6 +72,16 @@ public class User implements Comparable<User> {
     }
 
     /**
+     * Gets the user's salt.
+     * 
+     * @return The salt of the user.
+     */
+    public String getSalt() {
+        
+        return this.salt;
+    }
+
+    /**
      * Gets the user's rating.
      * 
      * @return The rating of the user.
@@ -62,6 +89,26 @@ public class User implements Comparable<User> {
     public int getRating() {
         
         return this.rating;
+    }
+
+    /** 
+     * Sets the user's password.
+     * 
+     * @param password The new password of the user.
+     */
+    public void setPassword(String password) {
+        
+        this.password = password;
+    }
+
+    /**
+     * Sets the user's salt.
+     * 
+     * @param salt The new salt of the user.
+     */
+    public void setSalt(String salt) {
+        
+        this.salt = salt;
     }
 
     /**
