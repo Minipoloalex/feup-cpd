@@ -3,28 +3,28 @@ package pt.up;
 import java.util.LinkedList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import pt.up.Queues.*;
+import pt.up.queues.*;
 
-public class GameManager implements Runnable {
+public class GameManager {
     public static final int GAMEPLAYERS = 2;
 
     private final ExecutorService gameNormalPool;
-    private final Queue normalQueue;
+    private final Queue<Player> normalQueue;
     // private final ExecutorService gameRankedPool;
     // private final Queue rankedQueue;
 
     public GameManager() {
-        this.normalQueue = new NormalQueue();
-        this.gameNormalPool = Executors.newCachedThreadPool();
+        this.normalQueue = new NormalQueue<>();
+        this.gameNormalPool = Executors.newVirtualThreadPerTaskExecutor();
         // this.gameRankedPool = Executors.newCachedThreadPool();
     }
 
-    public boolean addNormalUser(User user) {
+    public boolean addNormalPlayer(Player user) {
         return this.normalQueue.add(user);
     }
 
-    public LinkedList<User> getGamePlayers() {
-        LinkedList<User> players = new LinkedList<>();
+    public LinkedList<Player> getGamePlayers() {
+        LinkedList<Player> players = new LinkedList<>();
 
         for (int i = 0; i < GAMEPLAYERS; i++) {
             players.add(this.normalQueue.pop());
@@ -34,24 +34,41 @@ public class GameManager implements Runnable {
     }
 
     public void manage() {
-        if (this.normalQueue.getPlayers() >= GAMEPLAYERS) {
-            // start game
+        if (this.normalQueue.canStartGame(GAMEPLAYERS)) {
+            System.out.println("Game can start");
             var players = this.getGamePlayers();
-            this.gameNormalPool.execute(new Game(players));
+            if (gameConfirmed(players)) {
+                // this.gameNormalPool.execute(new Game(players));
+                System.out.println("Game started with " + GAMEPLAYERS + " players");
+            }
         }
     }
 
-    @Override
-    public void run() {
-        try {
-            while (true) {
-                synchronized (this) {
-                    this.wait(100); // Save CPU time
-                }
-                this.manage();
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+    public boolean gameConfirmed(LinkedList<Player> players) {
+        for (Player player : players) {
+            // send messages to all first
+            player.sendGameConfirmation("Game found! Accept? (y/n)");
+            System.out.println("Sent confirmation to " + player.getUsername());
         }
+
+        boolean confirmed = true;
+        LinkedList<Boolean> confirmations = new LinkedList<>();
+
+        for (Player player : players) {
+            // receive confirmation or denial from all
+            boolean confirmation = player.getGameConfirmation();
+            System.out.println("Received confirmation from " + player.getUsername() + ": " + confirmation);
+            player.sendOk();
+            confirmed &= confirmation;
+            confirmations.add(confirmation);
+        }
+
+        for (int i = 0; i < players.size(); i++) {
+            if (!confirmations.get(i)) {
+                players.get(i).sendGameCanceled();
+            }
+        }
+
+        return confirmed;
     }
 }

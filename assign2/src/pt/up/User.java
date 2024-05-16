@@ -5,6 +5,7 @@ public class User implements Comparable<User> {
     private final String username;
     private final String password;
     private int rating;
+    private String token;
 
     /**
      * Constructor for the User class.
@@ -74,8 +75,26 @@ public class User implements Comparable<User> {
     }
 
     /**
-     * Compares two users by their username.
+     * Gets the user's token.
+     * 
+     * @return The token of the user.
      */
+    public String getToken() {
+        
+        return this.token;
+    }
+
+    /**
+     * Sets the user's token.
+     * 
+     * @param token The new token of the user.
+     */
+    public void setToken(String token) {
+        
+        this.token = token;
+    }
+
+
     @Override
     public int compareTo(User other) {
         

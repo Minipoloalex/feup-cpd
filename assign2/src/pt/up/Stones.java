@@ -1,7 +1,7 @@
 package pt.up;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A class to represent a game of Stones.
@@ -51,13 +51,13 @@ public class Stones {
      */
     public boolean isGameOver() {
 
-      for (int stack : this.stones) {
-          if (stack > 0) {
-              return false;
-          }
-      }
+        for (int stack : this.stones) {
+            if (stack > 0) {
+                return false;
+            }
+        }
 
-      return true;
+        return true;
     }
 
     /**
@@ -66,7 +66,7 @@ public class Stones {
      * @return The current player.
      */
     public int getCurrentPlayer() {
-        
+
         return this.currentPlayer;
     }
 
@@ -74,7 +74,7 @@ public class Stones {
      * Advances to the next player.
      */
     public void nextPlayer() {
-        
+
         this.currentPlayer = (this.currentPlayer + 1) % this.numPlayers;
     }
 
@@ -82,23 +82,23 @@ public class Stones {
      * Checks if a move is valid.
      * A move is valid if the stack exists and has enough stones.
      * 
-     * @param stack The stack to remove stones from.
+     * @param stack     The stack to remove stones from.
      * @param numStones The number of stones to remove.
      * @return True if the move is valid, false otherwise.
      */
     public boolean isValidMove(int stack, int numStones) {
-        
+
         return stack >= 0 && stack < this.stones.size() && numStones > 0 && numStones <= this.stones.get(stack);
     }
 
     /**
      * Removes a number of stones from a given stack.
      *
-     * @param stack The stack to remove stones from.
+     * @param stack     The stack to remove stones from.
      * @param numStones The number of stones to remove.
      */
     public void removeStones(int stack, int numStones) {
-        
+
         this.stones.set(stack, this.stones.get(stack) - numStones);
     }
 
@@ -106,7 +106,7 @@ public class Stones {
      * Prints the current state of the game.
      */
     public void printStacks() {
-        
+
         // Find the maximum stack height
         int maxStackHeight = 0;
         for (int stack : this.stones) {
@@ -143,5 +143,5 @@ public class Stones {
         }
 
         System.out.println();
-    }  
+    }
 }

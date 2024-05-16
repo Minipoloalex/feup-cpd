@@ -2,10 +2,12 @@ package pt.up;
 
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.io.File;
 import java.io.IOException;
 import java.io.FileWriter;
 import java.util.Scanner;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Class that represents a database of users.
@@ -18,6 +20,8 @@ public class Database {
     private final String path;
     private final String separator = ";";
     private final Set<User> users = new TreeSet<>();
+    
+    private final ReentrantLock lock = new ReentrantLock();
 
     /**
      * Constructor for the Database class.
@@ -64,7 +68,8 @@ public class Database {
      * Saves the users to the csv file.
      */
     public void save() {
-        
+        lock.lock();
+
         try {
             FileWriter writer = new FileWriter(this.path);
             for (User user : this.users) {
@@ -74,6 +79,8 @@ public class Database {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        lock.unlock();
     }
 
     /**
@@ -84,6 +91,9 @@ public class Database {
     public void addUser(User user) {
         
         this.users.add(user);
+
+        // Save the users to the file
+        this.save();
     }
 
     /**
@@ -124,5 +134,31 @@ public class Database {
         
         User user = this.getUser(username);
         return user != null && user.getPassword().equals(password);
+    }
+
+    /**
+     * Generates a token for a user.
+     * 
+     * @param username The username of the user.
+     * @return The generated token.
+     */
+    public String generateToken(String username) {
+        User user = this.getUser(username);
+        String token = UUID.randomUUID().toString();
+        
+        user.setToken(token);
+        
+        return token;
+    }
+
+    /**
+     * Checks if a token is valid for a given user.
+     * 
+     * @param username The username of the user.
+     * @param token The token to check.
+     * @return True if the token is valid, false otherwise.
+     */
+    public boolean checkUserToken(String username, String token) {
+        return this.getUser(username).getToken().equals(token);
     }
 }

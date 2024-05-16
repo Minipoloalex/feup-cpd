@@ -5,9 +5,9 @@ import java.util.List;
 
 public class Game implements Runnable {
     private List<Socket> userSockets;
-    private List<User> players;
+    private List<Player> players;
 
-    public Game(List<User> players) {
+    public Game(List<Player> players) {
         this.players = players;
     }
 

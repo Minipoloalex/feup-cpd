@@ -1,24 +1,88 @@
 package pt.up;
 
+import java.io.IOException;
 import java.net.*;
+import java.util.ArrayList;
 
 public class ClientConnection implements Runnable {
-    private final Socket clientSocket;
+    private final Socket socket;
+    private final GameManager gameManager;
+    private final Database database;
+    private Connection connection;
 
-    public ClientConnection(Socket clientSocket) {
-        this.clientSocket = clientSocket;
+    public ClientConnection(Socket clientSocket, GameManager gameManager) throws IOException {
+        this.socket = clientSocket;
+        this.gameManager = gameManager;
+        this.database = new Database("src/pt/up/storage/db.csv");
+    }
+
+    private Message handle(Message message) {
+        ArrayList<String> data = message.getContentAsList();
+        System.out.println(message);
+
+        try {
+            switch (message.getType()) {
+                case MessageType.REGISTER -> {
+                    String username = data.get(0), password = data.get(1);
+                    
+                    if (database.userExists(username)) {
+                        return Message.error("Username already exists");
+                    }
+
+                    database.addUser(new User(username, password));
+
+                    return Message.ok();
+                }
+
+                case MessageType.LOGIN -> {
+                    String username = data.get(0), password = data.get(1);
+
+                    if (!database.checkPassword(username, password)) {
+                        return Message.error("Invalid username or password");
+                    }
+
+                    String token = database.generateToken(username);
+                   
+                    return Message.ok(token);
+                }
+
+                case MessageType.NORMAL -> {
+                    String username = data.get(0), token = data.get(1);
+
+                    if (!database.checkUserToken(username, token)) {
+                        return Message.error("Invalid token");
+                    }
+
+                    gameManager.addNormalPlayer(new Player(username, token, connection));
+                    return Message.ok();
+                }
+
+                default -> throw new AssertionError();
+            }
+        } catch (Exception e) {
+            return Message.error("Error while processing request");
+        }
+    }
+
+    private synchronized void checkForGames(Message request) throws InterruptedException {
+        if (request.getType() == MessageType.NORMAL) {
+            wait(2000); // wait for last player to process previous messages
+            System.out.println("Checking for games");
+            gameManager.manage();
+        }
     }
 
     @Override
     public void run() {
-        try (Connection connection = new Connection(clientSocket)) {
+        try {
+            connection = new Connection(socket);
             while (true) {
-                Message message = connection.receiveRequest();
-                System.out.println("Received message: " + message);
-                connection.sendRequest(Message.ok());
-                System.out.println("Sent message: " + Message.ok());
-                while (true) {
-                }
+                Message request = connection.listen();
+                System.out.println("Received request: " + request);
+                Message answer = handle(request);
+                connection.sendRequest(answer);
+                System.out.println("Sent answer: " + answer);
+                checkForGames(request);
             }
         } catch (Exception e) {
             System.err.println("Exception caught when listening for a connection");

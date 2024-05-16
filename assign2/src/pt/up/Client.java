@@ -2,8 +2,15 @@ package pt.up;
 
 import java.io.*;
 import java.net.*;
+import pt.up.states.*;
 
 public class Client {
+    private State state;
+
+    public Client(Connection connection) {
+        this.state = new AuthMenuState(connection);
+    }
+
     public static void main(String[] args) {
         System.out.println("Starting client");
 
@@ -11,17 +18,17 @@ public class Client {
         int port = 8000;
 
         try (Connection connection = new Connection(hostname, port)) {
+            Client client = new Client(connection);
             while (true) {
-                connection.sendRequest(Message.ok());
-                Message response = connection.receiveRequest();
+                client.state.render();
 
-                if (response.isError()) {
-                    System.out.println("Error: " + response.getContent());
-                } else {
-                    System.out.println("Server response: " + response);
-                }
+                BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+                String inputLine = reader.readLine();
 
-                while (true) {
+                client.state = client.state.handle(inputLine);
+
+                if (client.state == null) {
+                    break;
                 }
             }
         } catch (UnknownHostException ex) {

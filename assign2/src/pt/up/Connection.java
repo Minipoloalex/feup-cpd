@@ -36,6 +36,22 @@ public class Connection implements AutoCloseable {
         return protocol.receiveRequest();
     }
 
+    public Message register(String username, String password) {
+        return protocol.register(username, password);
+    }
+
+    public Message login(String username, String password) {
+        return protocol.login(username, password);
+    }
+
+    public Message playNormalGame(String username, String token) {
+        return protocol.playNormalGame(username, token);
+    }
+
+    public Message listen() {
+        return protocol.listen();
+    }
+
     @Override
     public void close() {
         protocol.close();

@@ -1,5 +1,8 @@
 package pt.up;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 public class Message {
     private final MessageType type;
     private final String content;
@@ -11,6 +14,10 @@ public class Message {
 
     public static Message ok() {
         return new Message(MessageType.OK, "");
+    }
+
+    public static Message ok(String content) {
+        return new Message(MessageType.OK, content);
     }
 
     public static Message error(String message) {
@@ -33,12 +40,20 @@ public class Message {
         return new Message(MessageType.LOGOUT, "");
     }
 
-    public static Message normal(String message) {
-        return new Message(MessageType.NORMAL, message);
+    public static Message normal(String user, String token) {
+        return new Message(MessageType.NORMAL, user + " " + token);
     }
 
-    public static Message ranked(String message) {
-        return new Message(MessageType.RANKED, message);
+    public static Message ranked(String user, String token) {
+        return new Message(MessageType.RANKED, user + " " + token);
+    }
+
+    public static Message confirm(String content) {
+        return new Message(MessageType.CONFIRM, content);
+    }
+
+    public boolean isOk() {
+        return type == MessageType.OK;
     }
 
     public boolean isError() {
@@ -53,6 +68,10 @@ public class Message {
         return content;
     }
 
+    public ArrayList<String> getContentAsList() {
+        return new ArrayList<>(Arrays.asList(content.split(" ")));
+    }
+
     public static Message parse(String message) {
         String[] parts = message.split(" ", 2);
         MessageType type = MessageType.valueOf(parts[0]);
@@ -60,6 +79,9 @@ public class Message {
 
         for (int i = 1; i < parts.length; i++) {
             content += parts[i];
+            if (i < parts.length - 1) {
+                content += " ";
+            }
         }
 
         return new Message(type, content);
