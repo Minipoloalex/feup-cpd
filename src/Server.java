@@ -2,7 +2,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
@@ -54,9 +53,9 @@ public class Server {
                 SSLSocket clientSocket = (SSLSocket) this.serverSocket.accept();
                 System.out.println("Client connected: " + clientSocket.getInetAddress().getHostAddress());
 
-                // ClientHandler clientHandler = new ClientHandler(clientSocket, this.database, this.normalPool, this.rankedPool);
-                // Thread clientThread = Thread.ofVirtual().start(clientHandler);
-                // this.clientThreads.add(clientThread);
+                ClientHandler clientHandler = new ClientHandler(clientSocket);
+                Thread clientThread = new Thread(clientHandler);
+                clientThread.start();
             }
         } catch (Exception e) {
             e.printStackTrace();

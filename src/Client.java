@@ -23,17 +23,18 @@ public class Client {
      * @param args Command line arguments.
      */
     public static void main(String[] args) {
-        Client play = new Client("localhost", 8008);
+        Client client = new Client("localhost", 8008);
 
-        play.start();
+        client.start();
+        client.run();
     }
 
     /**
      * Starts the client.
      */
-    public void start() {
-      System.setProperty("javax.net.ssl.keyStore", "key_store.jks");
-      System.setProperty("javax.net.ssl.keyStorePassword", "keystore");
+    private void start() {
+        System.setProperty("javax.net.ssl.trustStore", "key_store.jks");
+        System.setProperty("javax.net.ssl.trustStorePassword", "keystore");
 
         try {
             SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
@@ -43,5 +44,64 @@ public class Client {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Runs the client.
+     */
+    private void run() {
+        this.authenticate();
+
+        while (true) {
+            try {
+                String message = Connection.receive(this.socket);
+                System.out.println("Received message: " + message);
+            } catch (Exception e) {
+                e.printStackTrace();
+                this.stop();
+            }
+        }
+    }
+
+    /**
+     * Authenticates the client.
+     * 
+     * @return True if the client is authenticated, false otherwise.
+     */
+    private boolean authenticate() {
+        while (true) {
+            try {
+                String option = System.console().readLine("Do you want to login or register? (login/register): ");
+                String username = System.console().readLine("Enter your username: ");
+                String password = new String(System.console().readPassword("Enter your password: "));
+
+                Connection.send(this.socket, option + ";" + username + ";" + password);
+                
+                String response = Connection.receive(this.socket);
+
+                if (response.equals("Success")) {
+                    System.out.println("Authenticated successfully!");
+                    return true;
+                } else {
+                    System.out.println(response);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                this.stop();
+            }
+        }
+    }
+
+    /**
+     * Stops the client.
+     */
+    private void stop() {
+        try {
+            Connection.close(this.socket);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    
+        System.exit(0);
     }
 }

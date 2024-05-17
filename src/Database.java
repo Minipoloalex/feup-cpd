@@ -9,7 +9,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class Database {
-    private final File file;
+    private final String path = "database/db.csv";
     private final Set<Player> players = new TreeSet<>();
     private static final Database instance = new Database();
 
@@ -25,7 +25,7 @@ public class Database {
      */
     private Database() {
         // Create the file if it doesn't exist
-        this.file = new File("database/db.csv");
+        File file = new File(this.path);
         if (!file.exists()) {
             try {
                 file.createNewFile();
@@ -43,7 +43,7 @@ public class Database {
      */
     private void load() {
         try {
-            Scanner scanner = new Scanner(this.file);
+            Scanner scanner = new Scanner(new File(this.path));
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 String[] parts = line.split(";");
@@ -60,7 +60,7 @@ public class Database {
      */
     public void save() {
         try {
-            FileWriter writer = new FileWriter(this.file);
+            FileWriter writer = new FileWriter(this.path);
             for (Player player : this.players) {
                 String separator = ";";
                 writer.write(player.getUsername() + separator + player.getPassword() + separator + player.getSalt() + separator + player.getRating() + "\n");
@@ -77,12 +77,20 @@ public class Database {
      * @param username The username of the player.
      * @param password The password of the player.
      */
-    public void addPlayer(String username, String password) {
+    public boolean addPlayer(String username, String password) {
         String salt = generateSalt();
         String hashedPassword = hashPassword(password, salt);
         
-        this.players.add(new Player(username, hashedPassword, salt));
-        this.save();
+        boolean exists = this.playerExists(username);
+
+        if (!exists) {
+            Player player = new Player(username, hashedPassword, salt);
+            this.players.add(player);
+      
+            this.save();
+        }
+
+        return !exists;
     }
 
     /**

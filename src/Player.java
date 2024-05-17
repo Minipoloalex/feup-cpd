@@ -98,9 +98,19 @@ public class Player implements Comparable<Player> {
         this.rating = rating;
     }
 
+    /**
+     * Compares two players based on their rating.
+     * 
+     * @param other The other player to compare to.
+     * @return A negative integer, zero, or a positive integer as this player is less than, equal to, or greater than the other player.
+     */
     @Override
     public int compareTo(Player other) {
-        return Integer.compare(this.rating, other.rating);
+        if (this.rating != other.rating) {
+            return Integer.compare(this.rating, other.rating);
+        } else {
+            return this.username.compareTo(other.username);
+        }
     }
 
     /**
