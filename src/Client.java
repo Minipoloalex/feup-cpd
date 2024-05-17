@@ -1,123 +1,47 @@
 import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 
-public class Client implements Comparable<Client> {
-    private final String username;
-    private final String password;
-    private final String salt;
-    private int rating;
-
+public class Client {
+    private final int port;
+    private final String hostname;
     private SSLSocket socket;
 
     /**
      * Constructor for the Client class.
      * 
-     * @param username The username of the client.
-     * @param password The password of the client.
-     * @param salt The salt of the client.
+     * @param hostname The hostname of the server.
+     * @param port     The port of the server.
      */
-    public Client(String username, String password, String salt) {
-        this.username = username;
-        this.password = password;
-        this.salt = salt;
-        this.rating = 1000;
+    public Client(String hostname, int port) {
+        this.hostname = hostname;
+        this.port = port;
     }
 
     /**
-     * Constructor for the Client class.
+     * Main method.
      * 
-     * @param username The username of the client.
-     * @param password The password of the client.
-     * @param salt The salt of the client.
-     * @param rating The rating of the client.
+     * @param args Command line arguments.
      */
-    public Client(String username, String password, String salt, int rating) {
-        this.username = username;
-        this.password = password;
-        this.salt = salt;
-        this.rating = rating;
+    public static void main(String[] args) {
+        Client play = new Client("localhost", 8008);
+
+        play.start();
     }
 
     /**
-     * Constructor for the Client class.
-     * 
-     * @param username The username of the client.
-     * @param password The password of the client.
-     * @param salt The salt of the client.
-     * @param rating The rating of the client.
+     * Starts the client.
      */
-    public Client(String username, String password, String salt, int rating, SSLSocket socket) {
-        this.username = username;
-        this.password = password;
-        this.salt = salt;
-        this.rating = rating;
-        this.socket = socket;
-    }
+    public void start() {
+      System.setProperty("javax.net.ssl.keyStore", "key_store.jks");
+      System.setProperty("javax.net.ssl.keyStorePassword", "keystore");
 
-    /**
-     * Gets the username of the client.
-     * 
-     * @return The username of the client.
-     */
-    public String getUsername() {
-        return this.username;
-    }
+        try {
+            SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+            this.socket = (SSLSocket) factory.createSocket(this.hostname, this.port);
 
-    /**
-     * Gets the password of the client.
-     * 
-     * @return The password of the client.
-     */
-    public String getPassword() {
-        return this.password;
-    }
-
-    /**
-     * Gets the salt of the client.
-     * 
-     * @return The salt of the client.
-     */
-    public String getSalt() {
-        return this.salt;
-    }
-
-    /**
-     * Gets the rating of the client.
-     * 
-     * @return The rating of the client.
-     */
-    public int getRating() {
-        return this.rating;
-    }
-
-    /**
-     * Sets the rating of the client.
-     * 
-     * @param rating The rating of the client.
-     */
-    public void setRating(int rating) {
-        this.rating = rating;
-    }
-
-    @Override
-    public int compareTo(Client other) {
-        return Integer.compare(this.rating, other.rating);
-    }
-
-    /**
-     * Gets the socket of the client.
-     * 
-     * @return The socket of the client.
-     */
-    public SSLSocket getSocket() {
-        return this.socket;
-    }
-
-    /**
-     * Sets the socket of the client.
-     * 
-     * @param socket The socket of the client.
-     */
-    public void setSocket(SSLSocket socket) {
-        this.socket = socket;
+            System.out.println("Connected to server on port " + this.port);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

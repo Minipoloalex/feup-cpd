@@ -10,7 +10,7 @@ import java.security.NoSuchAlgorithmException;
 
 public class Database {
     private final File file;
-    private final Set<Client> clients = new TreeSet<>();
+    private final Set<Player> players = new TreeSet<>();
     private static final Database instance = new Database();
 
     /**
@@ -34,12 +34,12 @@ public class Database {
             }
         }
 
-        // Load the clients from the file
+        // Load the players from the file
         this.load();
     }
 
     /**
-     * Loads the clients from the csv file.
+     * Loads the players from the csv file.
      */
     private void load() {
         try {
@@ -47,7 +47,7 @@ public class Database {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 String[] parts = line.split(";");
-                this.clients.add(new Client(parts[0], parts[1], parts[2], Integer.parseInt(parts[3])));
+                this.players.add(new Player(parts[0], parts[1], parts[2], Integer.parseInt(parts[3])));
             }
             scanner.close();
         } catch (IOException e) {
@@ -56,14 +56,14 @@ public class Database {
     }
 
     /**
-     * Saves the clients to the csv file.
+     * Saves the players to the csv file.
      */
     public void save() {
         try {
             FileWriter writer = new FileWriter(this.file);
-            for (Client client : this.clients) {
+            for (Player player : this.players) {
                 String separator = ";";
-                writer.write(client.getUsername() + separator + client.getPassword() + separator + client.getSalt() + separator + client.getRating() + "\n");
+                writer.write(player.getUsername() + separator + player.getPassword() + separator + player.getSalt() + separator + player.getRating() + "\n");
             }
             writer.close();
         } catch (IOException e) {
@@ -72,56 +72,56 @@ public class Database {
     }
 
     /**
-     * Adds a client to the database.
+     * Adds a player to the database.
      * 
-     * @param username The username of the client.
-     * @param password The password of the client.
+     * @param username The username of the player.
+     * @param password The password of the player.
      */
-    public void addClient(String username, String password) {
+    public void addPlayer(String username, String password) {
         String salt = generateSalt();
         String hashedPassword = hashPassword(password, salt);
         
-        this.clients.add(new Client(username, hashedPassword, salt));
+        this.players.add(new Player(username, hashedPassword, salt));
         this.save();
     }
 
     /**
-     * Gets a client from the database.
+     * Gets a player from the database.
      * 
-     * @param username The username of the client.
-     * @return The client with the given username.
+     * @param username The username of the player.
+     * @return The player with the given username.
      */
-    public Client getClient(String username) {
-        for (Client client : this.clients) {
-            if (client.getUsername().equals(username)) {
-                return client;
+    public Player getPlayer(String username) {
+        for (Player player : this.players) {
+            if (player.getUsername().equals(username)) {
+                return player;
             }
         }
         return null;
     }
 
     /**
-     * Checks if a client exists in the database.
+     * Checks if a player exists in the database.
      * 
-     * @param username The username of the client.
-     * @return True if the client exists, false otherwise.
+     * @param username The username of the player.
+     * @return True if the player exists, false otherwise.
      */
-    public boolean clientExists(String username) {
-        return this.getClient(username) != null;
+    public boolean playerExists(String username) {
+        return this.getPlayer(username) != null;
     }
 
     /**
-     * Checks if the password is correct for a given client.
+     * Checks if the password is correct for a given player.
      * 
-     * @param username The username of the client.
+     * @param username The username of the player.
      * @param password The password to check.
      * @return True if the password is correct, false otherwise.
      */
     public boolean checkPassword(String username, String password) {
-        Client client = this.getClient(username);
-        String hashedPassword = hashPassword(password, client.getSalt());
+        Player player = this.getPlayer(username);
+        String hashedPassword = hashPassword(password, player.getSalt());
         
-        return client.getPassword().equals(hashedPassword);
+        return player.getPassword().equals(hashedPassword);
     }
 
     /**
@@ -174,14 +174,14 @@ public class Database {
     }
 
     /**
-     * Update the rating of a client.
+     * Update the rating of a player.
      * 
-     * @param username The username of the client.
-     * @param rating The new rating of the client.
+     * @param username The username of the player.
+     * @param rating The new rating of the player.
      */
     public void updateRating(String username, int rating) {
-        Client client = this.getClient(username);
-        client.setRating(rating);
+        Player player = this.getPlayer(username);
+        player.setRating(rating);
         this.save();
     }
 }
