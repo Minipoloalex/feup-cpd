@@ -1,3 +1,4 @@
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 import queue.*;
@@ -8,6 +9,8 @@ public class GameScheduler implements Runnable {
 
     private final ExecutorService normalPool;
     // private final ExecutorService rankedPool;
+
+    private final int NUM_PLAYERS = 2;
 
     public GameScheduler(NormalQueue<Player> normalQueue, ExecutorService normalPool, ExecutorService rankedPool) {
         this.normalQueue = normalQueue;
@@ -23,12 +26,11 @@ public class GameScheduler implements Runnable {
                 Thread.sleep(1000);
 
                 // Check if there are enough players in the normal queue
-                if (this.normalQueue.canStartGame()) {
-                    Player player1 = this.normalQueue.pop();
-                    Player player2 = this.normalQueue.pop();
-
+                if (this.normalQueue.canStartGame(NUM_PLAYERS)) {
+                    List<Player> players = this.normalQueue.getPlayers(NUM_PLAYERS);
+                    
                     // Start a new game with the two players
-                    Game game = new Game(player1, player2);
+                    Game game = new Game(players.get(0), players.get(1));
 
                     // Start the game in a new thread
                     this.normalPool.execute(game);

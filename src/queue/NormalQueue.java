@@ -64,10 +64,24 @@ public class NormalQueue<T> extends Queue<T> {
     }
 
     @Override
-    public boolean canStartGame() {
+    public boolean canStartGame(int numPlayers) {
         this.lock.lock();
         try {
-            return this._queue.size() >= 2;
+            return this._queue.size() >= numPlayers;
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    @Override
+    public List<T> getPlayers(int numPlayers) {
+        this.lock.lock();
+        try {
+            List<T> players = new LinkedList<>();
+            for (int i = 0; i < numPlayers; i++) {
+                players.add(this._queue.remove(0));
+            }
+            return players;
         } finally {
             this.lock.unlock();
         }

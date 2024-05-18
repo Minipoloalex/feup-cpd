@@ -42,7 +42,9 @@ public class QueueManager implements Runnable {
                             } else if (gameMode.equals("ranked")) {
                                 // this.rankedQueue.add(player);
                             } else {
+                                this.pendingPlayers.remove(player);
                                 Connection.send(player.getSocket(), "Invalid game mode!");
+                                
                                 return;
                             }
         

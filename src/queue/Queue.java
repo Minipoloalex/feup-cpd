@@ -1,5 +1,6 @@
 package queue;
 
+import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class Queue<T> {
@@ -15,5 +16,7 @@ public abstract class Queue<T> {
 
     public abstract int getSize();  
 
-    public abstract boolean canStartGame();
+    public abstract boolean canStartGame(int numPlayers);
+
+    public abstract List<T> getPlayers(int numPlayers);
 }

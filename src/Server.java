@@ -53,6 +53,7 @@ public class Server {
         SSLServerSocketFactory factory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
         this.serverSocket = (SSLServerSocket) factory.createServerSocket(this.port);
 
+        Utils.clearScreen();
         System.out.println("Server started on port " + this.port);  
     }
     

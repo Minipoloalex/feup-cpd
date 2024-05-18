@@ -57,6 +57,7 @@ public class Client {
     }
 
     private boolean authenticate() throws IOException {
+        Utils.clearScreen();
         while (true) {
             String option = System.console().readLine(Connection.receive(this.socket));
             Connection.send(this.socket, option);
@@ -68,6 +69,7 @@ public class Client {
             String response = Connection.receive(this.socket);
 
             if (response.equals("OK")) {
+                Utils.clearScreen();
                 System.out.println("Welcome, " + username + "!");
                 return true;
             } else {
@@ -84,7 +86,9 @@ public class Client {
             String response = Connection.receive(this.socket);
 
             if (response.equals("OK")) {
-                System.out.println("Game mode selected!");
+                Utils.clearScreen();
+                System.out.println("Selected game mode: " + option);
+                System.out.println("Waiting for another player to join...");
                 return;
             } else {
                 System.out.println(response);
@@ -94,16 +98,21 @@ public class Client {
 
     private void playGame() throws IOException {
         while (true) {
-            String option = System.console().readLine(Connection.receive(this.socket));
-            Connection.send(this.socket, option);
+            String message = Connection.receive(this.socket);
             
-            String response = Connection.receive(this.socket);
-
-            if (response.equals("OK")) {
-                System.out.println("Game started!");
-                return;
+            if (message.startsWith("STONES")) {
+                Utils.clearScreen();
+                System.out.println(message);
+            }
+            else if (message.startsWith("Enter")) {
+                String move = System.console().readLine(message);
+                Connection.send(this.socket, move);
+            } else if (message.equals("You won!") || message.equals("You lost!")) {
+                Utils.clearScreen();
+                System.out.println(message);
+                break;
             } else {
-                System.out.println(response);
+                System.out.println(message);
             }
         }
     }
