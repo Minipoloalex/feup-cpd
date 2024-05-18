@@ -13,7 +13,7 @@ public abstract class Queue<T> {
 
     public abstract boolean contains(T user);
 
-    public abstract int getPlayers();
+    public abstract int getSize();  
 
-    public abstract boolean canStartGame(int players);
+    public abstract boolean canStartGame();
 }

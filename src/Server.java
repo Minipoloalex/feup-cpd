@@ -11,12 +11,14 @@ import queue.*;
 
 public class Server {
     private final int port;
+
     private SSLServerSocket serverSocket;
     
-    private final Set<Player> players = new TreeSet<>();
+    private final Set<Player> availablePlayers = new TreeSet<>();
     
     private final NormalQueue<Player> normalQueue = new NormalQueue<>();
     // private final RankedQueue<Player> rankedQueue = new RankedQueue<>();
+
     private final ExecutorService normalPool = Executors.newVirtualThreadPerTaskExecutor();
     private final ExecutorService rankedPool = Executors.newVirtualThreadPerTaskExecutor();
 
@@ -60,10 +62,10 @@ public class Server {
     private void run() {
         try {
             // Start the queue manager
-            Thread.ofVirtual().start(new QueueManager(this.players, this.normalQueue));
+            Thread.ofVirtual().start(new QueueManager(this.availablePlayers, this.normalQueue));
             
             // Start the game scheduler
-            // Thread.ofVirtual().start(new GameScheduler(this.normalQueue, this.normalPool, this.rankedQueue, this.rankedPool));
+            Thread.ofVirtual().start(new GameScheduler(this.normalQueue, this.normalPool, this.rankedPool));
             
             // Wait for clients to connect
             while (true) {
@@ -71,7 +73,7 @@ public class Server {
                 System.out.println("Client connected from " + clientSocket.getInetAddress().getHostAddress());
                 
                 // Start a new thread for the client authentication
-                Thread.ofVirtual().start(new ClientAuthenticator(clientSocket, this.players));
+                Thread.ofVirtual().start(new ClientAuthenticator(clientSocket, this.availablePlayers));
             }
         } catch (Exception e) {
             System.out.println("Error running the server: " + e.getMessage());

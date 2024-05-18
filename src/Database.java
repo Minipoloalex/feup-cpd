@@ -126,6 +126,10 @@ public class Database {
      * @return True if the password is correct, false otherwise.
      */
     public boolean checkPassword(String username, String password) {
+        if (!this.playerExists(username)) {
+            return false;
+        }
+
         Player player = this.getPlayer(username);
         String hashedPassword = hashPassword(password, player.getSalt());
         

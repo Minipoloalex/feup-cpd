@@ -25,7 +25,7 @@ public class ClientAuthenticator implements Runnable {
 
                 if (option.equals("register")) {
                     if (this.database.addPlayer(username, password)) {
-                        Connection.send(this.clientSocket, "Success");
+                        Connection.send(this.clientSocket, "OK");
                     } else {
                         Connection.send(this.clientSocket, "Player already exists!");
                         continue;
@@ -37,9 +37,9 @@ public class ClientAuthenticator implements Runnable {
                         Connection.send(this.clientSocket, "Player not found!");
                         continue;
                     }
-                } else if (option.equals("exit")) {
-                    Connection.send(this.clientSocket, "Goodbye!");
-                    break;
+                } else {
+                    Connection.send(this.clientSocket, "Invalid option!");
+                    continue;
                 }
 
                 Player player = this.database.getPlayer(username);

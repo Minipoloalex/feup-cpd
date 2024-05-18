@@ -47,8 +47,9 @@ public class Client {
 
     private void run() {
         try {
-            if (authenticate()) {
-                selectGameMode();
+            if (this.authenticate()) {
+                this.selectGameMode();
+                this.playGame();
             }
         } catch (IOException e) {
             System.out.println("Error running the client: " + e.getMessage());
@@ -84,6 +85,22 @@ public class Client {
 
             if (response.equals("OK")) {
                 System.out.println("Game mode selected!");
+                return;
+            } else {
+                System.out.println(response);
+            }
+        }
+    }
+
+    private void playGame() throws IOException {
+        while (true) {
+            String option = System.console().readLine(Connection.receive(this.socket));
+            Connection.send(this.socket, option);
+            
+            String response = Connection.receive(this.socket);
+
+            if (response.equals("OK")) {
+                System.out.println("Game started!");
                 return;
             } else {
                 System.out.println(response);
