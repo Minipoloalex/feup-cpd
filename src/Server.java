@@ -14,6 +14,7 @@ public class Server {
 
     private SSLServerSocket serverSocket;
     
+    private final Set<Player> authenticatedPlayers = new TreeSet<>();   
     private final Set<Player> availablePlayers = new TreeSet<>();
     
     private final NormalQueue<Player> normalQueue = new NormalQueue<>();
@@ -73,7 +74,7 @@ public class Server {
                 System.out.println("Client connected from " + clientSocket.getInetAddress().getHostAddress());
                 
                 // Start a new thread for the client authentication
-                Thread.ofVirtual().start(new ClientAuthenticator(clientSocket, this.availablePlayers));
+                Thread.ofVirtual().start(new ClientAuthenticator(clientSocket, this.authenticatedPlayers, this.availablePlayers));
             }
         } catch (Exception e) {
             System.out.println("Error running the server: " + e.getMessage());

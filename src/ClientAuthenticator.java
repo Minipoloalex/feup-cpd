@@ -3,13 +3,16 @@ import javax.net.ssl.SSLSocket;
 
 public class ClientAuthenticator implements Runnable {
     private final SSLSocket clientSocket;
-    private final Set<Player> players;
+
+    private final Set<Player> authenticatedPlayers;
+    private final Set<Player> availablePlayers;
 
     private final Database database = Database.getInstance();
 
-    public ClientAuthenticator(SSLSocket socket, Set<Player> players) {
+    public ClientAuthenticator(SSLSocket socket, Set<Player> authenticatedPlayers, Set<Player> availablePlayers) {
         this.clientSocket = socket;
-        this.players = players;
+        this.authenticatedPlayers = authenticatedPlayers;
+        this.availablePlayers = availablePlayers;
     }
 
     @Override
@@ -23,18 +26,24 @@ public class ClientAuthenticator implements Runnable {
                 Connection.send(this.clientSocket, "Enter your password: ");
                 String password = Connection.receive(this.clientSocket);
 
+                // Check if the player is already authenticated
+                if (this.authenticatedPlayers.stream().anyMatch(player -> player.getUsername().equals(username))) {
+                    Connection.send(this.clientSocket, "Player already authenticated!");
+                    continue;
+                }
+
                 if (option.equals("register")) {
                     if (this.database.addPlayer(username, password)) {
                         Connection.send(this.clientSocket, "OK");
                     } else {
-                        Connection.send(this.clientSocket, "Player already exists!");
+                        Connection.send(this.clientSocket, "Username already taken!");
                         continue;
                     }
                 } else if (option.equals("login")) {
                     if (this.database.checkPassword(username, password)) {
                         Connection.send(this.clientSocket, "OK");
                     } else {
-                        Connection.send(this.clientSocket, "Player not found!");
+                        Connection.send(this.clientSocket, "Invalid username or password!");
                         continue;
                     }
                 } else {
@@ -44,7 +53,8 @@ public class ClientAuthenticator implements Runnable {
 
                 Player player = this.database.getPlayer(username);
                 player.setSocket(this.clientSocket);
-                this.players.add(player);
+                this.authenticatedPlayers.add(player);
+                this.availablePlayers.add(player);
 
                 System.out.println("Player " + player.getUsername() + " has been authenticated.");
 
