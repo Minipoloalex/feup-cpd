@@ -52,7 +52,7 @@ public class QueueManager implements Runnable {
                                 
                                 return;
                             }
-        
+                            
                             this.availablePlayers.remove(player);
                             this.pendingPlayers.remove(player);
         
@@ -70,4 +70,3 @@ public class QueueManager implements Runnable {
         }
     }
 }
-

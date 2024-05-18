@@ -4,6 +4,7 @@ import pt.up.fe.cpd2324.client.Player;
 
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.locks.ReentrantLock;
 import java.io.File;
 import java.io.IOException;
 import java.io.FileWriter;
@@ -16,6 +17,8 @@ public class Database {
     private final String path = "database/db.csv";
     private final Set<Player> players = new TreeSet<>();
     private static final Database instance = new Database();
+
+    private final ReentrantLock lock = new ReentrantLock();
 
     public static Database getInstance() {
         return instance;
@@ -35,6 +38,7 @@ public class Database {
     }
 
     private void load() {
+        this.lock.lock();
         try {
             Scanner scanner = new Scanner(new File(this.path));
             while (scanner.hasNextLine()) {
@@ -44,11 +48,14 @@ public class Database {
             }
             scanner.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Error loading the database: " + e.getMessage());
+        } finally {
+            this.lock.unlock();
         }
     }
 
     public void save() {
+        this.lock.lock();
         try {
             FileWriter writer = new FileWriter(this.path);
             for (Player player : this.players) {
@@ -57,33 +64,51 @@ public class Database {
             }
             writer.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Error saving the database: " + e.getMessage());
+        } finally {
+            this.lock.unlock();
         }
     }
 
     public boolean addPlayer(String username, String password) {
-        String salt = generateSalt();
-        String hashedPassword = hashPassword(password, salt);
-        
-        boolean exists = this.playerExists(username);
+        this.lock.lock();
+        try {
+            String salt = generateSalt();
+            String hashedPassword = hashPassword(password, salt);
+            
+            boolean exists = this.playerExists(username);
 
-        if (!exists) {
-            Player player = new Player(username, hashedPassword, salt);
-            this.players.add(player);
-      
-            this.save();
+            if (!exists) {
+                Player player = new Player(username, hashedPassword, salt);
+                this.players.add(player);
+            
+                this.save();
+            }
+
+            return !exists;
+        } catch (Exception e) {
+            System.out.println("Error adding player to the database: " + e.getMessage());
+            return false;
+        } finally {
+            this.lock.unlock();
         }
-
-        return !exists;
     }
 
     public Player getPlayer(String username) {
-        for (Player player : this.players) {
-            if (player.getUsername().equals(username)) {
-                return player;
+        this.lock.lock();
+        try {
+            for (Player player : this.players) {
+                if (player.getUsername().equals(username)) {
+                    return player;
+                }
             }
+            return null;
+        } catch (Exception e) {
+            System.out.println("Error getting player from the database: " + e.getMessage());
+            return null;
+        } finally {
+            this.lock.unlock();
         }
-        return null;
     }
 
     public boolean playerExists(String username) {
