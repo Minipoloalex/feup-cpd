@@ -5,18 +5,18 @@ import queue.*;
 
 public class GameScheduler implements Runnable {
     private final NormalQueue<Player> normalQueue;
-    // private final RankedQueue<Player> rankedQueue;
+    private final RankedQueue<Player> rankedQueue;
 
     private final ExecutorService normalPool;
-    // private final ExecutorService rankedPool;
+    private final ExecutorService rankedPool;
 
     private final int NUM_PLAYERS = 2;
 
-    public GameScheduler(NormalQueue<Player> normalQueue, ExecutorService normalPool, ExecutorService rankedPool) {
+    public GameScheduler(NormalQueue<Player> normalQueue, RankedQueue<Player> rankedQueue, ExecutorService normalPool, ExecutorService rankedPool) {
         this.normalQueue = normalQueue;
-        // this.rankedQueue = rankedQueue;
+        this.rankedQueue = rankedQueue;
         this.normalPool = normalPool;
-        // this.rankedPool = rankedPool;
+        this.rankedPool = rankedPool;
     }
 
     @Override
@@ -36,8 +36,7 @@ public class GameScheduler implements Runnable {
                     this.normalPool.execute(game);
                 }
 
-                // Handle the ranked queue
-
+                // Check if there are enough players in the ranked queue
               }
         } catch (InterruptedException e) {
             e.printStackTrace();

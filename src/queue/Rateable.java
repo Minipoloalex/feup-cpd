@@ -1,5 +1,5 @@
 package queue;
 
 public interface Rateable {
-    int rating();
+    int getRating();
 }

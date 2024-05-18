@@ -1,6 +1,8 @@
 import javax.net.ssl.SSLSocket;
 
-public class Player implements Comparable<Player> {
+import queue.Rateable;
+
+public class Player implements Comparable<Player>, Rateable {
     private final String username;
     private final String password;
     private final String salt;

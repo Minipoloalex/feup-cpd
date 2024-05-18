@@ -18,7 +18,7 @@ public class Server {
     private final Set<Player> availablePlayers = new TreeSet<>();
     
     private final NormalQueue<Player> normalQueue = new NormalQueue<>();
-    // private final RankedQueue<Player> rankedQueue = new RankedQueue<>();
+    private final RankedQueue<Player> rankedQueue = new RankedQueue<>();
 
     private final ExecutorService normalPool = Executors.newVirtualThreadPerTaskExecutor();
     private final ExecutorService rankedPool = Executors.newVirtualThreadPerTaskExecutor();
@@ -67,7 +67,7 @@ public class Server {
             Thread.ofVirtual().start(new QueueManager(this.availablePlayers, this.normalQueue));
             
             // Start the game scheduler
-            Thread.ofVirtual().start(new GameScheduler(this.normalQueue, this.normalPool, this.rankedPool));
+            Thread.ofVirtual().start(new GameScheduler(this.normalQueue, this.rankedQueue, this.normalPool, this.rankedPool));
             
             // Wait for clients to connect
             while (true) {

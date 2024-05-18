@@ -5,50 +5,18 @@ import java.util.HashSet;
 import java.util.List;
 
 public class RankedQueue<T extends Rateable> extends Queue<T> {
-    private class Bucket<TT extends Rateable> {
-        private final HashSet<TT> players;
-        private final int lower;
-        private final int upper;
-
-        public Bucket(int lower, int upper) {
-            this.players = new HashSet<>();
-            this.lower = lower;
-            this.upper = upper;
-        }
-
-        public boolean add(TT x) {
-            int rating = x.rating();
-            if (rating < this.lower || rating > this.upper) {
-                return false;
-            }
-            return this.players.add(x);
-        }
-
-        public boolean remove(TT x) {
-            return this.players.remove(x);
-        }
-
-        public boolean contains(TT x) {
-            return this.players.contains(x);
-        }
-
-        public int size() {
-            return this.players.size();
-        }
-
-        public boolean canStartGame(int players) {
-            return this.players.size() >= players;
-        }
-    }
-
-    private static final int WAIT_TIME = 2000;
+    private static final int WAIT_TIME = 5000;
+    
     private List<Bucket<T>> buckets;
-    private int n;
+    
+    private int numBuckets;
     private int step;
 
     public RankedQueue() {
         super();
-        defaultBuckets();
+
+        this.defaultBuckets();
+
         Thread.ofVirtual().start(this::updateBuckets);
     }
 
@@ -57,47 +25,46 @@ public class RankedQueue<T extends Rateable> extends Queue<T> {
             try {
                 Thread.sleep(WAIT_TIME);
             } catch (InterruptedException e) {
-                System.out.println("RankedQueue updateBuckets interrupted");
+                System.out.println("Error updating buckets: " + e.getMessage());
             }
 
-            if (this.step >= 1000 || this.getPlayers() <= 1) {
-                System.out.println("Max step reached or not enough players in queue, not updating buckets");
+            if (this.step >= 1000 || this.getSize() <= 1) {
+                System.out.println("Not updating buckets: step=" + this.step + ", size=" + this.getSize());
                 continue;
             }
 
-            System.out.println("Updating buckets");
+            System.out.println("Updating buckets: step=" + this.step + ", size=" + this.getSize());
 
             this.step += this.step / 4;
 
-            List<Bucket<T>> newBuckets = this.makeBukets();
-            this.transferPlayers(this.buckets, newBuckets);
+            List<Bucket<T>> newBuckets = this.makeBuckets();
+            this.distributePlayers(this.buckets, newBuckets);
 
             this.buckets = newBuckets;
         }
     }
 
     private void defaultBuckets() {
-        this.n = 10;
+        this.numBuckets = 10;
         this.step = 200;
-        this.buckets = makeBukets();
+        this.buckets = makeBuckets();
     }
 
-    private List<Bucket<T>> makeBukets() {
+    private List<Bucket<T>> makeBuckets() {
         List<Bucket<T>> b = new ArrayList<>();
 
-        for (int i = 0; i < this.n; i++) {
-            if (i < this.n - 1) {
+        for (int i = 0; i < this.numBuckets; i++) {
+            if (i < this.numBuckets - 1) {
                 b.add(new Bucket<>(i * this.step, (i + 1) * this.step - 1));
             } else {
-                // guarantee that the LGMs also have a bucket
-                b.add(new Bucket<>((this.n - 1) * this.step, Integer.MAX_VALUE));
+                b.add(new Bucket<>((this.numBuckets - 1) * this.step, Integer.MAX_VALUE));
             }
         }
 
         return b;
     }
 
-    private void transferPlayers(List<Bucket<T>> from, List<Bucket<T>> to) {
+    private void distributePlayers(List<Bucket<T>> from, List<Bucket<T>> to) {
         for (Bucket<T> bucket : from) {
             for (T player : bucket.players) {
                 for (Bucket<T> newBucket : to) {
@@ -140,10 +107,10 @@ public class RankedQueue<T extends Rateable> extends Queue<T> {
     }
 
     @Override
-    public int getPlayers() {
+    public int getSize() {
         this.lock.lock();
         try {
-            return this.buckets.stream().mapToInt(Bucket::size).sum();
+            return this.buckets.stream().mapToInt(Bucket::getSize).sum();
         } finally {
             this.lock.unlock();
         }
@@ -159,12 +126,12 @@ public class RankedQueue<T extends Rateable> extends Queue<T> {
         }
     }
 
-    public List<T> takeGamePlayers(int players) {
+    public List<T> getPlayers(int players) {
         this.lock.lock();
         try {
             List<T> gamePlayers = new ArrayList<>();
             for (Bucket<T> bucket : this.buckets) {
-                if (bucket.size() < players) {
+                if (bucket.getSize() < players) {
                     continue;
                 }
 
@@ -181,13 +148,49 @@ public class RankedQueue<T extends Rateable> extends Queue<T> {
 
                 List<Bucket<T>> bucketsCopy = new ArrayList<>(this.buckets);
                 this.defaultBuckets();
-                this.transferPlayers(bucketsCopy, this.buckets);
+                this.distributePlayers(bucketsCopy, this.buckets);
 
                 break;
             }
             return gamePlayers;
         } finally {
             this.lock.unlock();
+        }
+    }
+
+    private class Bucket<TT extends Rateable> {
+        private final HashSet<TT> players;
+        private final int lower;
+        private final int upper;
+
+        public Bucket(int lower, int upper) {
+            this.players = new HashSet<>();
+            this.lower = lower;
+            this.upper = upper;
+        }
+
+        public boolean add(TT x) {
+            int rating = x.getRating();
+            if (rating < this.lower || rating > this.upper) {
+                return false;
+            }
+            return this.players.add(x);
+        }
+
+        public boolean remove(TT x) {
+            return this.players.remove(x);
+        }
+
+        public boolean contains(TT x) {
+            return this.players.contains(x);
+        }
+
+        public int getSize() {
+            return this.players.size();
+        }
+
+        public boolean canStartGame(int players) {
+            return this.players.size() >= players;
         }
     }
 }

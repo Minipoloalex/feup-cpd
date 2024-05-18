@@ -67,7 +67,7 @@ public class NormalQueue<T> extends Queue<T> {
     public boolean canStartGame(int numPlayers) {
         this.lock.lock();
         try {
-            return this._queue.size() >= numPlayers;
+            return this.queue.size() >= numPlayers;
         } finally {
             this.lock.unlock();
         }
@@ -79,7 +79,7 @@ public class NormalQueue<T> extends Queue<T> {
         try {
             List<T> players = new LinkedList<>();
             for (int i = 0; i < numPlayers; i++) {
-                players.add(this._queue.remove(0));
+                players.add(this.queue.remove(0));
             }
             return players;
         } finally {
