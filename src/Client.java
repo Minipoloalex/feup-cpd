@@ -1,3 +1,4 @@
+import java.io.IOException;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
@@ -6,102 +7,87 @@ public class Client {
     private final String hostname;
     private SSLSocket socket;
 
-    /**
-     * Constructor for the Client class.
-     * 
-     * @param hostname The hostname of the server.
-     * @param port     The port of the server.
-     */
     public Client(String hostname, int port) {
         this.hostname = hostname;
         this.port = port;
     }
 
-    /**
-     * Main method.
-     * 
-     * @param args Command line arguments.
-     */
     public static void main(String[] args) {
-        Client client = new Client("localhost", 8008);
+        Client client = new Client("localhost", 8080);
 
-        client.start();
-        client.run();
+        try {
+            client.start();
+            client.run();
+        } catch (IOException e) {
+            System.out.println("Error starting the client: " + e.getMessage());
+        } finally {
+            try {
+                client.stop();
+            } catch (IOException e) {
+                System.out.println("Error stopping the client: " + e.getMessage());
+            }
+        }
     }
 
-    /**
-     * Starts the client.
-     */
-    private void start() {
+    private void start() throws IOException {
+        // Set the system properties for the keystore (SSL)
         System.setProperty("javax.net.ssl.trustStore", "key_store.jks");
         System.setProperty("javax.net.ssl.trustStorePassword", "keystore");
 
-        try {
-            SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
-            this.socket = (SSLSocket) factory.createSocket(this.hostname, this.port);
+        // Create the client socket
+        SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+        this.socket = (SSLSocket) factory.createSocket(this.hostname, this.port);
 
-            System.out.println("Connected to server on port " + this.port);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        System.out.println("Connected to server on port " + this.port);
     }
 
-    /**
-     * Runs the client.
-     */
+    private void stop() throws IOException {
+        this.socket.close();
+    }
+
     private void run() {
-        this.authenticate();
-
-        while (true) {
-            try {
-                String message = Connection.receive(this.socket);
-                System.out.println("Received message: " + message);
-            } catch (Exception e) {
-                e.printStackTrace();
-                this.stop();
-            }
-        }
-    }
-
-    /**
-     * Authenticates the client.
-     * 
-     * @return True if the client is authenticated, false otherwise.
-     */
-    private boolean authenticate() {
-        while (true) {
-            try {
-                String option = System.console().readLine("Do you want to login or register? (login/register): ");
-                String username = System.console().readLine("Enter your username: ");
-                String password = new String(System.console().readPassword("Enter your password: "));
-
-                Connection.send(this.socket, option + ";" + username + ";" + password);
-                
-                String response = Connection.receive(this.socket);
-
-                if (response.equals("Success")) {
-                    System.out.println("Authenticated successfully!");
-                    return true;
-                } else {
-                    System.out.println(response);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                this.stop();
-            }
-        }
-    }
-
-    /**
-     * Stops the client.
-     */
-    private void stop() {
         try {
-            Connection.close(this.socket);
-        } catch (Exception e) {
-            e.printStackTrace();
+            if (authenticate()) {
+                selectGameMode();
+            }
+        } catch (IOException e) {
+            System.out.println("Error running the client: " + e.getMessage());
         }
-    
-        System.exit(0);
+    }
+
+    private boolean authenticate() throws IOException {
+        while (true) {
+            String option = System.console().readLine(Connection.receive(this.socket));
+            Connection.send(this.socket, option);
+            String username = System.console().readLine(Connection.receive(this.socket));
+            Connection.send(this.socket, username);
+            String password = new String(System.console().readPassword(Connection.receive(this.socket)));
+            Connection.send(this.socket, password);
+            
+            String response = Connection.receive(this.socket);
+
+            if (response.equals("OK")) {
+                System.out.println("Welcome, " + username + "!");
+                return true;
+            } else {
+                System.out.println(response);
+            }
+        }
+    }
+
+    private void selectGameMode() throws IOException {
+        while (true) {
+            String option = System.console().readLine(Connection.receive(this.socket));
+            Connection.send(this.socket, option);
+            
+            String response = Connection.receive(this.socket);
+
+            if (response.equals("OK")) {
+                System.out.println("Game mode selected!");
+                return;
+            } else {
+                System.out.println(response);
+            }
+        }
     }
 }
