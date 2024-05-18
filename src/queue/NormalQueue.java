@@ -4,10 +4,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class NormalQueue<T> extends Queue<T> {
-    private final List<T> _queue;
+    private final List<T> queue;
 
     public NormalQueue() {
-        this._queue = new LinkedList<>();
+        super();
+        this.queue = new LinkedList<>();
     }
 
     @Override
@@ -15,9 +16,9 @@ public class NormalQueue<T> extends Queue<T> {
         this.lock.lock();
         try {
             if (this.contains(x)) {
-                return false; 
+                return false;
             }
-            return this._queue.add(x);
+            return this.queue.add(x);
         } finally {
             this.lock.unlock();
         }
@@ -27,17 +28,16 @@ public class NormalQueue<T> extends Queue<T> {
     public boolean remove(T x) {
         this.lock.lock();
         try {
-            return this._queue.remove(x);
+            return this.queue.remove(x);
         } finally {
             this.lock.unlock();
         }
     }
 
-    @Override
     public T pop() {
         this.lock.lock();
         try {
-            return this._queue.remove(0);
+            return this.queue.remove(0);
         } finally {
             this.lock.unlock();
         }
@@ -47,7 +47,7 @@ public class NormalQueue<T> extends Queue<T> {
     public boolean contains(T x) {
         this.lock.lock();
         try {
-            return this._queue.contains(x);
+            return this.queue.contains(x);
         } finally {
             this.lock.unlock();
         }
@@ -57,7 +57,7 @@ public class NormalQueue<T> extends Queue<T> {
     public int getSize() {
         this.lock.lock();
         try {
-            return this._queue.size();
+            return this.queue.size();
         } finally {
             this.lock.unlock();
         }
