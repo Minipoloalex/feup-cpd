@@ -33,14 +33,19 @@ public class GameScheduler implements Runnable {
                 if (this.normalQueue.canStartGame(NUM_PLAYERS)) {
                     List<Player> players = this.normalQueue.getPlayers(NUM_PLAYERS);
                     
-                    // Start a new game with the two players
-                    Game game = new Game(players.get(0), players.get(1));
+                    Game game = new Game(players.get(0), players.get(1), false);
 
-                    // Start the game in a new thread
                     this.normalPool.execute(game);
-                }
+                }   
+            
+                // Match players in the ranked queue if possible
+                if (this.rankedQueue.canStartGame(NUM_PLAYERS)) {
+                    List<Player> players = this.rankedQueue.getPlayers(NUM_PLAYERS);
+                    
+                    Game game = new Game(players.get(0), players.get(1), true);
 
-                // Check if there are enough players in the ranked queue
+                    this.rankedPool.execute(game);
+                }
               }
         } catch (InterruptedException e) {
             e.printStackTrace();

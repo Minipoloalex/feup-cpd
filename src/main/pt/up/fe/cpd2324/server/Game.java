@@ -9,14 +9,18 @@ import java.io.IOException;
 public class Game implements Runnable {
     private final Player player1;
     private final Player player2;
-    private Player currentPlayer;
-    private Player otherPlayer;
+
+    private final Boolean ranked;
     
     private final Stones stones = new Stones(2);
 
-    public Game(Player player1, Player player2) {
+    private Player currentPlayer;
+    private Player otherPlayer;
+
+    public Game(Player player1, Player player2, Boolean ranked) {
         this.player1 = player1;
         this.player2 = player2;
+        this.ranked = ranked;
 
         this.currentPlayer = this.player1;
         this.otherPlayer = this.player2;
@@ -25,8 +29,8 @@ public class Game implements Runnable {
     @Override
     public void run() {
         try {
-            Connection.send(this.player1.getSocket(), "Game started between you and " + this.player2.getUsername());
-            Connection.send(this.player2.getSocket(), "Game started between you and " + this.player1.getUsername());
+            Connection.send(this.player1.getSocket(), "Game started between you and " + this.player2.getUsername() + "[" + this.player2.getRating() + "]");
+            Connection.send(this.player2.getSocket(), "Game started between you and " + this.player1.getUsername() + "[" + this.player1.getRating() + "]");
 
             System.out.println("Game started between " + this.player1.getUsername() + " and " + this.player2.getUsername());
 
@@ -70,6 +74,10 @@ public class Game implements Runnable {
 
         // Check if the game is over
         if (this.stones.isGameOver()) {
+            if (this.ranked) {
+                this.updateRatings();
+            }
+
             Connection.send(this.currentPlayer.getSocket(), "You won!");
             Connection.send(this.otherPlayer.getSocket(), "You lost!");
 
@@ -78,5 +86,29 @@ public class Game implements Runnable {
 
         // Switch players
         this.switchPlayers();
+    }
+
+    private double expectedScore(int rating1, int rating2) {
+        return 1 / (1 + Math.pow(10, (rating2 - rating1) / 400.0));
+    }
+
+    private void updateRatings() {
+        int rating1 = this.currentPlayer.getRating();   // Winner
+        int rating2 = this.otherPlayer.getRating();     // Loser
+
+        double expected1 = this.expectedScore(rating1, rating2);
+        double expected2 = this.expectedScore(rating2, rating1);
+
+        // K-factor for Elo rating system
+        int k = 32;
+        
+        int newRating1 = (int) (rating1 + k * (1 - expected1));
+        int newRating2 = (int) (rating2 + k * (0 - expected2));
+
+        this.currentPlayer.setRating(newRating1);
+        this.otherPlayer.setRating(newRating2);
+
+        // Save the new ratings to the database
+        Database.getInstance().save();
     }
 }

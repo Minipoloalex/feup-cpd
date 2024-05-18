@@ -1,6 +1,7 @@
 package pt.up.fe.cpd2324.server;
 
 import pt.up.fe.cpd2324.client.Player;
+import pt.up.fe.cpd2324.common.Connection;
 import pt.up.fe.cpd2324.common.Utils;
 import pt.up.fe.cpd2324.queue.NormalQueue;
 import pt.up.fe.cpd2324.queue.RankedQueue;
@@ -69,7 +70,7 @@ public class Server {
     private void run() {
         try {
             // Start the cpd2324.queue manager
-            Thread.ofVirtual().start(new QueueManager(this.availablePlayers, this.normalQueue));
+            Thread.ofVirtual().start(new QueueManager(this.availablePlayers, this.normalQueue, this.rankedQueue));
             
             // Start the game scheduler
             Thread.ofVirtual().start(new GameScheduler(this.normalQueue, this.rankedQueue, this.normalPool, this.rankedPool));

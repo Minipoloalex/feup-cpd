@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 
 public class RankedQueue<T extends Rateable> extends Queue<T> {
-    private static final int WAIT_TIME = 5000;
+    private static final int WAIT_TIME = 3000;
     
     private List<Bucket<T>> buckets;
     

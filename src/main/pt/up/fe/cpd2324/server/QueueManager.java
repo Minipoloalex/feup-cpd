@@ -14,12 +14,12 @@ public class QueueManager implements Runnable {
     private final Set<Player> pendingPlayers = new TreeSet<>();
     
     private final NormalQueue<Player> normalQueue;
-    // private final RankedQueue<Player> rankedQueue;
+    private final RankedQueue<Player> rankedQueue;
 
-    public QueueManager(Set<Player> players, NormalQueue<Player> normalQueue) {
+    public QueueManager(Set<Player> players, NormalQueue<Player> normalQueue, RankedQueue<Player> rankedQueue) {
         this.availablePlayers = players;
         this.normalQueue = normalQueue;
-        // this.rankedQueue = rankedQueue;
+        this.rankedQueue = rankedQueue;
     }
   
     @Override
@@ -45,7 +45,7 @@ public class QueueManager implements Runnable {
                             if (gameMode.equals("normal")) {
                                 this.normalQueue.add(player);
                             } else if (gameMode.equals("ranked")) {
-                                // this.rankedQueue.add(player);
+                                this.rankedQueue.add(player);
                             } else {
                                 this.pendingPlayers.remove(player);
                                 Connection.send(player.getSocket(), "Invalid game mode!");
