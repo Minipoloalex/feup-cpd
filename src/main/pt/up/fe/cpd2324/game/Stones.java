@@ -1,3 +1,5 @@
+package pt.up.fe.cpd2324.game;
+
 import java.util.List;
 import java.util.ArrayList;
 

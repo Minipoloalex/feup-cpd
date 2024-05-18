@@ -1,4 +1,4 @@
-package queue;
+package pt.up.fe.cpd2324.queue;
 
 import java.util.ArrayList;
 import java.util.HashSet;

@@ -1,7 +1,11 @@
+package pt.up.fe.cpd2324.server;
+
+import pt.up.fe.cpd2324.client.Player;
+import pt.up.fe.cpd2324.queue.NormalQueue;
+import pt.up.fe.cpd2324.queue.RankedQueue;
+
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-
-import queue.*;
 
 public class GameScheduler implements Runnable {
     private final NormalQueue<Player> normalQueue;

@@ -1,6 +1,8 @@
-import javax.net.ssl.SSLSocket;
+package pt.up.fe.cpd2324.client;
 
-import queue.Rateable;
+import pt.up.fe.cpd2324.queue.Rateable;
+
+import javax.net.ssl.SSLSocket;
 
 public class Player implements Comparable<Player>, Rateable {
     private final String username;

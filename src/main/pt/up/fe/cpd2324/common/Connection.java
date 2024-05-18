@@ -1,3 +1,5 @@
+package pt.up.fe.cpd2324.common;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;

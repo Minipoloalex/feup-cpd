@@ -1,3 +1,7 @@
+package pt.up.fe.cpd2324.server;
+
+import pt.up.fe.cpd2324.client.Player;
+
 import java.util.Set;
 import java.util.TreeSet;
 import java.io.File;
@@ -13,18 +17,11 @@ public class Database {
     private final Set<Player> players = new TreeSet<>();
     private static final Database instance = new Database();
 
-    /**
-     * Gets the instance of the Database class.
-     */
     public static Database getInstance() {
         return instance;
     }
     
-    /**
-     * Constructor for the Database class.
-     */
     private Database() {
-        // Create the file if it doesn't exist
         File file = new File(this.path);
         if (!file.exists()) {
             try {
@@ -34,13 +31,9 @@ public class Database {
             }
         }
 
-        // Load the players from the file
         this.load();
     }
 
-    /**
-     * Loads the players from the csv file.
-     */
     private void load() {
         try {
             Scanner scanner = new Scanner(new File(this.path));
@@ -55,9 +48,6 @@ public class Database {
         }
     }
 
-    /**
-     * Saves the players to the csv file.
-     */
     public void save() {
         try {
             FileWriter writer = new FileWriter(this.path);
@@ -71,12 +61,6 @@ public class Database {
         }
     }
 
-    /**
-     * Adds a player to the database.
-     * 
-     * @param username The username of the player.
-     * @param password The password of the player.
-     */
     public boolean addPlayer(String username, String password) {
         String salt = generateSalt();
         String hashedPassword = hashPassword(password, salt);
@@ -93,12 +77,6 @@ public class Database {
         return !exists;
     }
 
-    /**
-     * Gets a player from the database.
-     * 
-     * @param username The username of the player.
-     * @return The player with the given username.
-     */
     public Player getPlayer(String username) {
         for (Player player : this.players) {
             if (player.getUsername().equals(username)) {
@@ -108,23 +86,10 @@ public class Database {
         return null;
     }
 
-    /**
-     * Checks if a player exists in the database.
-     * 
-     * @param username The username of the player.
-     * @return True if the player exists, false otherwise.
-     */
     public boolean playerExists(String username) {
         return this.getPlayer(username) != null;
     }
 
-    /**
-     * Checks if the password is correct for a given player.
-     * 
-     * @param username The username of the player.
-     * @param password The password to check.
-     * @return True if the password is correct, false otherwise.
-     */
     public boolean checkPassword(String username, String password) {
         if (!this.playerExists(username)) {
             return false;
@@ -136,11 +101,6 @@ public class Database {
         return player.getPassword().equals(hashedPassword);
     }
 
-    /**
-     * Generate salt for password hashing.
-     * 
-     * @return The generated salt.
-     */
     public static String generateSalt() {
         SecureRandom random = new SecureRandom();
         byte[] salt = new byte[16];
@@ -149,13 +109,6 @@ public class Database {
         return bytesToHex(salt);
     }
 
-    /**
-     * Hashes a password with a given salt.
-     * 
-     * @param password The password to hash.
-     * @param salt The salt to use.
-     * @return The hashed password.
-     */
     public static String hashPassword(String password, String salt) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -170,12 +123,6 @@ public class Database {
         return null;
     }
 
-    /**
-     * Converts bytes to a hexadecimal string.
-     * 
-     * @param bytes The bytes to convert.
-     * @return The hexadecimal string.
-     */
     private static String bytesToHex(byte[] bytes) {
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
@@ -184,13 +131,7 @@ public class Database {
         
         return sb.toString();
     }
-
-    /**
-     * Update the rating of a player.
-     * 
-     * @param username The username of the player.
-     * @param rating The new rating of the player.
-     */
+    
     public void updateRating(String username, int rating) {
         Player player = this.getPlayer(username);
         player.setRating(rating);

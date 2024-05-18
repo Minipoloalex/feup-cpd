@@ -1,8 +1,13 @@
+package pt.up.fe.cpd2324.server;
+
 import java.io.IOException;
 import java.util.Set;
 import java.util.TreeSet;
 
-import queue.*;
+import pt.up.fe.cpd2324.common.Connection;
+import pt.up.fe.cpd2324.client.Player;
+import pt.up.fe.cpd2324.queue.NormalQueue;
+import pt.up.fe.cpd2324.queue.RankedQueue;
 
 public class QueueManager implements Runnable {
     private final Set<Player> availablePlayers;

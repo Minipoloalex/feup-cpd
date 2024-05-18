@@ -1,3 +1,8 @@
+package pt.up.fe.cpd2324.client;
+
+import pt.up.fe.cpd2324.common.Connection;
+import pt.up.fe.cpd2324.common.Utils;
+
 import java.io.IOException;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;

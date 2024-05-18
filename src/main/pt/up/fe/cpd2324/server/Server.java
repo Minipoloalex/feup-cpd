@@ -1,3 +1,10 @@
+package pt.up.fe.cpd2324.server;
+
+import pt.up.fe.cpd2324.client.Player;
+import pt.up.fe.cpd2324.common.Utils;
+import pt.up.fe.cpd2324.queue.NormalQueue;
+import pt.up.fe.cpd2324.queue.RankedQueue;
+
 import java.io.IOException;
 import java.util.Set;
 import java.util.TreeSet;
@@ -7,14 +14,12 @@ import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
 
-import queue.*;
-
 public class Server {
     private final int port;
 
     private SSLServerSocket serverSocket;
     
-    private final Set<Player> authenticatedPlayers = new TreeSet<>();   
+    private final Set<Player> authenticatedPlayers = new TreeSet<>();
     private final Set<Player> availablePlayers = new TreeSet<>();
     
     private final NormalQueue<Player> normalQueue = new NormalQueue<>();
@@ -54,7 +59,7 @@ public class Server {
         this.serverSocket = (SSLServerSocket) factory.createServerSocket(this.port);
 
         Utils.clearScreen();
-        System.out.println("Server started on port " + this.port);  
+        System.out.println("Server started on port " + this.port);
     }
     
     public void stop() throws IOException {
@@ -63,7 +68,7 @@ public class Server {
 
     private void run() {
         try {
-            // Start the queue manager
+            // Start the cpd2324.queue manager
             Thread.ofVirtual().start(new QueueManager(this.availablePlayers, this.normalQueue));
             
             // Start the game scheduler

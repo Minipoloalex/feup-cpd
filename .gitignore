@@ -2,3 +2,5 @@
 .idea/
 
 database/db.csv
+
+out/

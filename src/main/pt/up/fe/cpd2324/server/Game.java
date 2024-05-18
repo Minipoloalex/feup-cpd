@@ -1,3 +1,9 @@
+package pt.up.fe.cpd2324.server;
+
+import pt.up.fe.cpd2324.common.Connection;
+import pt.up.fe.cpd2324.client.Player;
+import pt.up.fe.cpd2324.game.Stones;
+
 import java.io.IOException;
 
 public class Game implements Runnable {

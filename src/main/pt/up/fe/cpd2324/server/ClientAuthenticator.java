@@ -1,3 +1,8 @@
+package pt.up.fe.cpd2324.server;
+
+import pt.up.fe.cpd2324.common.Connection;
+import pt.up.fe.cpd2324.client.Player;
+
 import java.util.Set;
 import javax.net.ssl.SSLSocket;
 
