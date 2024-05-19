@@ -46,6 +46,10 @@ public class GameScheduler implements Runnable {
 
                     this.rankedPool.execute(game);
                 }
+
+                // If game ended add players back to the available players
+                // and remove them from the authenticated players
+                
               }
         } catch (InterruptedException e) {
             e.printStackTrace();

@@ -40,8 +40,6 @@ public class Stones {
         }
 
         StringBuilder sb = new StringBuilder();
-
-        sb.append("STONES\n\n");
         
         for (int i = maxStackHeight - 1; i >= 0; i--) {
             for (int j = 0; j < this.stones.size(); j++) {

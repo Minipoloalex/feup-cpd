@@ -1,6 +1,7 @@
 package pt.up.fe.cpd2324.client;
 
 import pt.up.fe.cpd2324.common.Connection;
+import pt.up.fe.cpd2324.common.Message;
 import pt.up.fe.cpd2324.common.Utils;
 
 import java.io.IOException;
@@ -52,9 +53,12 @@ public class Client {
 
     private void run() {
         try {
-            if (this.authenticate()) {
-                this.selectGameMode();
-                this.playGame();
+            if (this.authenticate()) {  // Authenticate the user, if successful, start listening
+                this.listen();
+            } else {
+                Utils.clearScreen();
+                System.out.println("Exiting...");
+                this.stop();
             }
         } catch (IOException e) {
             System.out.println("Error running the client: " + e.getMessage());
@@ -63,61 +67,120 @@ public class Client {
 
     private boolean authenticate() throws IOException {
         Utils.clearScreen();
-        while (true) {
-            String option = System.console().readLine(Connection.receive(this.socket));
-            Connection.send(this.socket, option);
-            String username = System.console().readLine(Connection.receive(this.socket));
-            Connection.send(this.socket, username);
-            String password = new String(System.console().readPassword(Connection.receive(this.socket)));
-            Connection.send(this.socket, password);
-            
-            String response = Connection.receive(this.socket);
 
-            if (response.equals("OK")) {
-                Utils.clearScreen();
-                System.out.println("Welcome, " + username + "!");
-                return true;
-            } else {
-                System.out.println(response);
+        while (true) {
+            Message message = Connection.receive(this.socket);
+            String content = message.getContent();
+
+            switch (message.getType()) {
+                case SHOW:
+                    System.out.println(content);
+                    break;
+                case PROMPT:
+                    System.out.println();
+                    Connection.send(this.socket, System.console().readLine(content));
+                    break;
+                case USERNAME:
+                    Utils.clearScreen();
+                    Connection.send(this.socket, System.console().readLine(content));
+                    break;
+                case PASSWORD:
+                    Connection.send(this.socket, new String(System.console().readPassword(content)));
+                    break;
+                case OK:
+                    Utils.clearScreen();
+                    System.out.println(content);
+                    return true;
+                case ERROR:
+                    Utils.clearScreen();
+                    System.out.println(content);
+                    break;
+                default:
+                    System.out.println("Invalid message type: " + message.getType());
+                    break;
+            }
+        }
+    }
+
+    // Listen for messages from the server and handle them
+    private void listen() throws IOException {
+        while (true) {
+            Message message = Connection.receive(this.socket);
+
+            switch (message.getType()) {    // 2 possible states: Game mode selection or playing the game
+                case MODE:
+                    this.selectGameMode();
+                    break;
+                case GAME:
+                    this.playGame();
+                    break;
+                default:
+                    System.out.println("Invalid message type: " + message.getType());
+                    break;
             }
         }
     }
 
     private void selectGameMode() throws IOException {
-        while (true) {
-            String option = System.console().readLine(Connection.receive(this.socket));
-            Connection.send(this.socket, option);
-            
-            String response = Connection.receive(this.socket);
+        while (true) { 
+            Message message = Connection.receive(this.socket);
+            String content = message.getContent();
 
-            if (response.equals("OK")) {
-                Utils.clearScreen();
-                System.out.println("Selected game mode: " + option);
-                System.out.println("Waiting for another player to join...");
-                return;
-            } else {
-                System.out.println(response);
+            switch (message.getType()) {
+                case SHOW:
+                    System.out.println(content);
+                    break;
+                case PROMPT: 
+                    System.out.println();
+                    Connection.send(this.socket, System.console().readLine(content));
+                    break;
+                case OK:
+                    Utils.clearScreen();
+                    System.out.println(content);
+                    System.out.println(Connection.receive(this.socket).getContent());
+                    return;
+                case ERROR:
+                    Utils.clearScreen();
+                    System.out.println(content);
+                    break;
+                default:
+                    System.out.println("Invalid message type: " + message.getType());
             }
         }
     }
+            
 
     private void playGame() throws IOException {
         while (true) {
-            String message = Connection.receive(this.socket);
-            
-            if (message.startsWith("STONES")) {
-                Utils.clearScreen();
-                System.out.println(message);
-            }
-            else if (message.startsWith("Enter")) {
-                String move = System.console().readLine(message);
-                Connection.send(this.socket, move);
-            } else if (message.equals("You won!") || message.equals("You lost!")) {
-                Utils.clearScreen();
-                System.out.println(message);
-                break;
-            } else {
-                System.out.println(message);
+            Message message = Connection.receive(this.socket);
+            String content = message.getContent();
+
+            switch (message.getType()) {
+                case SHOW:
+                    System.out.println(content);
+                    break;
+                case PROMPT:
+                    System.out.println();
+                    Connection.send(this.socket, System.console().readLine(content));
+                    break;
+                case CLEAR:
+                    Utils.clearScreen();
+                    break;
+                case WAIT:
+                    System.out.println();
+                    System.out.println(content);
+                    break;  
+                case GAME_OVER:
+                    Utils.clearScreen();
+                    System.out.println(content);
+                    System.out.println(Connection.receive(this.socket).getContent());
+                    return;
+                case ERROR:
+                    Utils.clearScreen();
+                    System.out.println(content);
+                    break;
+                default:
+                    System.out.println("Invalid message type: " + message.getType());
             }
         }
     }

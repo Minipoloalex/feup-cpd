@@ -5,19 +5,55 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-
 import javax.net.ssl.SSLSocket;
 
-public class Connection {   
-    public static void send(SSLSocket socket, String message) throws IOException {
+// Handles sending and receiving messages through a socket
+public class Connection {  
+    public static void send(SSLSocket socket, Message message) throws IOException {
         BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-        out.write(message + "\n");
+        out.write(message.toString());
+        out.newLine();
         out.flush();
+    }   
+    
+    // Send plain text message
+    // Overloads send method for convenience (no need to create a Message object)
+    public static void send(SSLSocket socket, String message) throws IOException {
+        send(socket, new Message(Message.Type.PLAIN, message));
     }
 
-    public static String receive(SSLSocket socket) throws IOException {
+    public static Message receive(SSLSocket socket) throws IOException {
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        return in.readLine();
+        return Message.fromString(in.readLine());   
+    }
+
+    public static void ok(SSLSocket socket, String content) throws IOException {
+        Connection.send(socket, new Message(Message.Type.OK, content));
+    }
+
+    public static void error(SSLSocket socket, String content) throws IOException {
+        Connection.send(socket, new Message(Message.Type.ERROR, content));
+    }
+
+    public static void show(SSLSocket socket, String content) throws IOException {
+        Connection.send(socket, new Message(Message.Type.SHOW, content));
+    }
+    
+    // Send multiple lines of text, each line is a separate message
+    // Receiver should handle each message separately
+    public static void show(SSLSocket socket, String[] content) throws IOException {
+        for (String line : content) {
+            Connection.show(socket, line);
+        }
+    }     
+
+    public static void prompt(SSLSocket socket, String content) throws IOException {
+        Connection.send(socket, new Message(Message.Type.PROMPT, content));
+    }
+
+    // Send command to clear the screen
+    public static void clear(SSLSocket socket) throws IOException {
+        Connection.send(socket, new Message(Message.Type.CLEAR, null));
     }
     
     public static void close(SSLSocket socket) throws IOException {

@@ -1,11 +1,14 @@
 package pt.up.fe.cpd2324.server;
 
 import pt.up.fe.cpd2324.common.Connection;
+import pt.up.fe.cpd2324.common.Message;
 import pt.up.fe.cpd2324.client.Player;
 
+import java.io.IOException;
 import java.util.Set;
 import javax.net.ssl.SSLSocket;
 
+// Authenticates the client and adds them to the list of authenticated players
 public class ClientAuthenticator implements Runnable {
     private final SSLSocket clientSocket;
 
@@ -22,51 +25,88 @@ public class ClientAuthenticator implements Runnable {
 
     @Override
     public void run() {
+        boolean authenticated = false;
+
         try {
-            while (true) {
-                Connection.send(this.clientSocket, "Do you want to login or register? (login/register): ");
-                String option = Connection.receive(this.clientSocket);
-                Connection.send(this.clientSocket, "Enter your username: ");
-                String username = Connection.receive(this.clientSocket);
-                Connection.send(this.clientSocket, "Enter your password: ");
-                String password = Connection.receive(this.clientSocket);
+            while (!authenticated) {
+                String[] menu = {
+                    " ______________________",
+                    "|                      |",
+                    "|  Authentication      |",
+                    "|                      |",
+                    "|  1. Login            |",
+                    "|  2. Register         |",
+                    "|                      |",
+                    "|______________________|",
+                };
+                Connection.show(this.clientSocket, menu);
+                
+                Connection.prompt(this.clientSocket, "Option: ");
+                String option = Connection.receive(this.clientSocket).getContent();
 
-                // Check if the player is already authenticated
-                if (this.authenticatedPlayers.stream().anyMatch(player -> player.getUsername().equals(username))) {
-                    Connection.send(this.clientSocket, "Player already authenticated!");
+                if (!option.equals("1") && !option.equals("2")) {
+                    Connection.error(this.clientSocket, "Invalid option!");
                     continue;
                 }
 
-                if (option.equals("register")) {
-                    if (this.database.addPlayer(username, password)) {
-                        Connection.send(this.clientSocket, "OK");
-                    } else {
-                        Connection.send(this.clientSocket, "Username already taken!");
-                        continue;
-                    }
-                } else if (option.equals("login")) {
-                    if (this.database.checkPassword(username, password)) {
-                        Connection.send(this.clientSocket, "OK");
-                    } else {
-                        Connection.send(this.clientSocket, "Invalid username or password!");
-                        continue;
-                    }
-                } else {
-                    Connection.send(this.clientSocket, "Invalid option!");
-                    continue;
-                }
+                Connection.send(this.clientSocket, new Message(Message.Type.USERNAME, "Username: "));
+                String username = Connection.receive(this.clientSocket).getContent();
 
-                Player player = this.database.getPlayer(username);
-                player.setSocket(this.clientSocket);
-                this.authenticatedPlayers.add(player);
-                this.availablePlayers.add(player);
+                Connection.send(this.clientSocket, new Message(Message.Type.PASSWORD, "Password: "));
+                String password = Connection.receive(this.clientSocket).getContent();
 
-                System.out.println("Player " + player.getUsername() + " has been authenticated.");
-
-                break;
-            }
-        } catch (Exception e) {
-            System.out.println("Error authenticating the client: " + e.getMessage());
+                switch (option) {
+                    case "1":
+                        authenticated = this.login(username, password);
+                        break;
+                    case "2":
+                        authenticated = this.register(username, password);
+                        break;
+                };
+            }   
+        } catch (IOException e) {
+            System.out.println("Error authenticating client: " + e.getMessage());
         }
-    }  
+    }
+
+    private boolean login(String username, String password) throws IOException {
+        if (this.database.checkPassword(username, password)) {
+            Player player = this.database.getPlayer(username);
+            if (this.authenticatedPlayers.contains(player)) {
+                Connection.error(this.clientSocket, "Player already authenticated!");
+                return false;
+            }
+
+            this.authenticatePlayer(player);
+
+            Connection.ok(this.clientSocket, "Welcome back, " + username + "!");
+            return true;
+        } else {
+            Connection.error(this.clientSocket, "Invalid username or password!");
+            return false;
+        }
+    }
+
+    private boolean register(String username, String password) throws IOException {
+        if (this.database.addPlayer(username, password)) {
+            Player player = this.database.getPlayer(username);
+           
+            this.authenticatePlayer(player);
+
+            Connection.ok(this.clientSocket, "Welcome, " + username + "!");
+            return true;
+        } else {
+            Connection.error(this.clientSocket, "Username already taken!");
+            return false;
+        }
+    }
+
+    private void authenticatePlayer(Player player) {
+        player.setSocket(this.clientSocket);
+
+        this.authenticatedPlayers.add(player);
+        this.availablePlayers.add(player);
+
+        System.out.println("Player " + player.getUsername() + " authenticated");
+    }
 }
