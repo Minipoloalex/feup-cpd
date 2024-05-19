@@ -25,18 +25,23 @@ public class Database {
     }
     
     private Database() {
+        File folder = new File("database");
+        if (!folder.exists()) {
+            folder.mkdir();
+        }
+        
         File file = new File(this.path);
         if (!file.exists()) {
             try {
                 file.createNewFile();
             } catch (IOException e) {
-                e.printStackTrace();
+                System.out.println("Error creating the database file: " + e.getMessage());
             }
         }
 
         this.load();
     }
-
+        
     private void load() {
         this.lock.lock();
         try {
