@@ -6,6 +6,7 @@ public class Message {
         PLAIN,
         OK,
         ERROR,
+        PING,
         SHOW,
         PROMPT,
         USERNAME,

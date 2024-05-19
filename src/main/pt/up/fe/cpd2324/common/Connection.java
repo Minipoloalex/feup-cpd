@@ -35,6 +35,10 @@ public class Connection {
         Connection.send(socket, new Message(Message.Type.ERROR, content));
     }
 
+    public static void ping(SSLSocket socket) throws IOException {
+        Connection.send(socket, new Message(Message.Type.PING, null));
+    }
+
     public static void show(SSLSocket socket, String content) throws IOException {
         Connection.send(socket, new Message(Message.Type.SHOW, content));
     }

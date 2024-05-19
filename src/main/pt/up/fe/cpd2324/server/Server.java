@@ -1,6 +1,7 @@
 package pt.up.fe.cpd2324.server;
 
 import pt.up.fe.cpd2324.client.Player;
+import pt.up.fe.cpd2324.common.Connection;
 import pt.up.fe.cpd2324.common.Utils;
 import pt.up.fe.cpd2324.queue.NormalQueue;
 import pt.up.fe.cpd2324.queue.RankedQueue;
@@ -27,6 +28,8 @@ public class Server {
 
     private final ExecutorService normalPool = Executors.newVirtualThreadPerTaskExecutor();
     private final ExecutorService rankedPool = Executors.newVirtualThreadPerTaskExecutor();
+
+    private long lastPing = System.currentTimeMillis();
 
     public Server(int port) {
         this.port = port;
@@ -73,6 +76,19 @@ public class Server {
             
             // Start the game scheduler
             Thread.ofVirtual().start(new GameScheduler(this.normalQueue, this.rankedQueue, this.normalPool, this.rankedPool));
+
+            // Start the ping thread
+            // Ensures that clients are still alive
+            Thread.ofVirtual().start(() -> {
+                while (true) {
+                    this.pingClients();
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        System.out.println("Error pinging clients: " + e.getMessage());
+                    }
+                }
+            });
             
             // Wait for clients to connect
             while (true) {
@@ -85,5 +101,32 @@ public class Server {
         } catch (Exception e) {
             System.out.println("Error running the server: " + e.getMessage());
         }
+    }
+
+    private void pingClients() {
+        if (System.currentTimeMillis() - this.lastPing < 5000) {   // Ping every 10 seconds
+            return;
+        }
+
+        lastPing = System.currentTimeMillis();
+    
+        for (Player player : this.authenticatedPlayers) {      
+            try {
+                System.out.println("Pinging client " + player.getUsername());
+                Connection.ping(player.getSocket());
+            } catch (IOException e) {
+                System.out.println("Error pinging client " + player.getUsername() + ": " + e.getMessage());
+                this.disconnectPlayer(player);
+            }
+        }
+    }
+            
+    private void disconnectPlayer(Player player)  {
+        this.authenticatedPlayers.remove(player);
+        this.availablePlayers.remove(player);
+        this.normalQueue.remove(player);
+        this.rankedQueue.remove(player);
+
+        System.out.println("Player " + player.getUsername() + " disconnected");
     }
 }

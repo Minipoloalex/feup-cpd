@@ -85,6 +85,7 @@ public class Client {
                     Connection.send(this.socket, System.console().readLine(content));
                     break;
                 case PASSWORD:
+                    System.out.println();
                     Connection.send(this.socket, new String(System.console().readPassword(content)));
                     break;
                 case OK:
@@ -114,9 +115,10 @@ public class Client {
                 case GAME:
                     this.playGame();
                     break;
+                case PING:
+                    break;
                 default:
                     System.out.println("Invalid message type: " + message.getType());
-                    break;
             }
         }
     }
@@ -143,6 +145,8 @@ public class Client {
                     Utils.clearScreen();
                     System.out.println(content);
                     break;
+                case PING:
+                    break; 
                 default:
                     System.out.println("Invalid message type: " + message.getType());
             }
@@ -178,6 +182,8 @@ public class Client {
                 case ERROR:
                     Utils.clearScreen();
                     System.out.println(content);
+                    break;
+                case PING:
                     break;
                 default:
                     System.out.println("Invalid message type: " + message.getType());
