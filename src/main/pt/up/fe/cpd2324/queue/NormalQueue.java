@@ -1,5 +1,6 @@
 package pt.up.fe.cpd2324.queue;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -85,5 +86,10 @@ public class NormalQueue<T> extends Queue<T> {
         } finally {
             this.lock.unlock();
         }
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return this.queue.iterator();
     }
 }

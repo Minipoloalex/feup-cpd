@@ -13,15 +13,13 @@ import javax.net.ssl.SSLSocket;
 public class ClientAuthenticator implements Runnable {
     private final SSLSocket clientSocket;
 
-    private final TreeSet<Player> authenticatedPlayers;
-    private final TreeSet<Player> availablePlayers;
+    private final TreeSet<Player> players;
 
     private final Database database = Database.getInstance();
 
-    public ClientAuthenticator(SSLSocket socket, TreeSet<Player> authenticatedPlayers, TreeSet<Player> availablePlayers) {
+    public ClientAuthenticator(SSLSocket socket, TreeSet<Player> players) {
         this.clientSocket = socket;
-        this.authenticatedPlayers = authenticatedPlayers;
-        this.availablePlayers = availablePlayers;
+        this.players = players;
     }
 
     @Override
@@ -73,7 +71,7 @@ public class ClientAuthenticator implements Runnable {
     private boolean login(String username, String password) throws IOException {
         if (this.database.checkPassword(username, password)) {
             Player player = this.database.getPlayer(username);
-            if (this.authenticatedPlayers.contains(player)) {
+            if (this.players.contains(player)) {
                 Connection.error(this.clientSocket, "Player already authenticated!");
                 return false;
             }
@@ -105,8 +103,7 @@ public class ClientAuthenticator implements Runnable {
     private void authenticatePlayer(Player player) {
         player.setSocket(this.clientSocket);
 
-        this.authenticatedPlayers.add(player);
-        this.availablePlayers.add(player);
+        this.players.add(player);
 
         System.out.println("Player " + player.getUsername() + " authenticated");
     }

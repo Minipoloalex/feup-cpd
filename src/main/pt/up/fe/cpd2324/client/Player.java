@@ -12,6 +12,8 @@ public class Player implements Comparable<Player>, Rateable {
 
     private SSLSocket socket;
 
+    private boolean isPlaying = false;
+
     public Player(String username, String password, String salt) {
         this.username = username;
         this.password = password;
@@ -46,12 +48,20 @@ public class Player implements Comparable<Player>, Rateable {
         return this.socket;
     }
 
+    public boolean isPlaying() {
+        return this.isPlaying;
+    }
+
     public void setRating(int rating) {
         this.rating = rating;
     }
 
     public void setSocket(SSLSocket socket) {
         this.socket = socket;
+    }
+
+    public void setPlaying(boolean isPlaying) {
+        this.isPlaying = isPlaying;
     }
 
     @Override

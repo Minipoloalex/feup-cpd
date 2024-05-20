@@ -2,10 +2,11 @@ package pt.up.fe.cpd2324.queue;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 public class RankedQueue<T extends Rateable> extends Queue<T> {
-    private static final int WAIT_TIME = 3000;
+    private static final int WAIT_TIME = 10000; // Increase bucket size every 10 seconds
     
     private List<Bucket<T>> buckets;
     
@@ -28,12 +29,12 @@ public class RankedQueue<T extends Rateable> extends Queue<T> {
                 System.out.println("Error updating buckets: " + e.getMessage());
             }
 
-            if (this.step >= 1000 || this.getSize() <= 1) {
-                System.out.println("Not updating buckets: step=" + this.step + ", size=" + this.getSize());
+            if (this.getSize() <= 1 || this.step >= 1000) {
+                System.out.println("Skipping bucket update [size=" + this.getSize() + ", step=" + this.step + "]");
                 continue;
             }
 
-            System.out.println("Updating buckets: step=" + this.step + ", size=" + this.getSize());
+            System.out.println("Updating buckets [size=" + this.getSize() + ", step=" + this.step + "]"); 
 
             this.step += this.step / 4;
 
@@ -153,6 +154,20 @@ public class RankedQueue<T extends Rateable> extends Queue<T> {
                 break;
             }
             return gamePlayers;
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        this.lock.lock();
+        try {
+            List<T> players = new ArrayList<>();
+            for (Bucket<T> bucket : this.buckets) {
+                players.addAll(bucket.players);
+            }
+            return players.iterator();
         } finally {
             this.lock.unlock();
         }

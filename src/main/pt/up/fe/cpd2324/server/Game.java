@@ -49,13 +49,16 @@ public class Game implements Runnable {
             // Update the ratings and show the new ratings to the players if the game is ranked
             if (this.ranked) {
                 this.updateRatings();
-                this.showNewRating();
             }
 
             System.out.println("Game between " + this.player1.getUsername() + " and " + this.player2.getUsername() + " ended");
         } catch (IOException e) {
             System.out.println("Error running the game: " + e.getMessage());
-        }
+        } finally {
+            // End the game for both players
+            this.player1.setPlaying(false);
+            this.player2.setPlaying(false);
+        }    
     }
 
     private void switchPlayers() {
@@ -90,7 +93,6 @@ public class Game implements Runnable {
         int numStones = Integer.parseInt(parts[1]);
 
         this.stones.removeStones(stack - 1, numStones);
-
 
         if (this.stones.isGameOver()) {
             return;
@@ -138,10 +140,5 @@ public class Game implements Runnable {
             this.currentPlayer.getUsername() + "'s rating: " + this.currentPlayer.getRating(),
             "\n"
         });
-    }
-
-    private void showNewRating() throws IOException {
-        Connection.show(this.currentPlayer.getSocket(), "Your new rating: " + this.currentPlayer.getRating());
-        Connection.show(this.otherPlayer.getSocket(), "Your new rating: " + this.otherPlayer.getRating());
     }
 }

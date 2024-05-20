@@ -3,7 +3,7 @@ package pt.up.fe.cpd2324.queue;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
-public abstract class Queue<T> {
+public abstract class Queue<T> implements Iterable<T> {
     protected ReentrantLock lock;
 
     public Queue() {

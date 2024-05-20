@@ -33,7 +33,13 @@ public class GameScheduler implements Runnable {
                 if (this.normalQueue.canStartGame(NUM_PLAYERS)) {
                     List<Player> players = this.normalQueue.getPlayers(NUM_PLAYERS);
                     
-                    Game game = new Game(players.get(0), players.get(1), false);
+                    Player player1 = players.get(0);
+                    Player player2 = players.get(1);
+
+                    player1.setPlaying(true);
+                    player2.setPlaying(true);
+
+                    Game game = new Game(player1, player2, false);
 
                     this.normalPool.execute(game);
                 }   
@@ -41,8 +47,14 @@ public class GameScheduler implements Runnable {
                 // Match players in the ranked queue if possible
                 if (this.rankedQueue.canStartGame(NUM_PLAYERS)) {
                     List<Player> players = this.rankedQueue.getPlayers(NUM_PLAYERS);
+
+                    Player player1 = players.get(0);
+                    Player player2 = players.get(1);
+
+                    player1.setPlaying(true);
+                    player2.setPlaying(true);
                     
-                    Game game = new Game(players.get(0), players.get(1), true);
+                    Game game = new Game(player1, player2, true);
 
                     this.rankedPool.execute(game);
                 }

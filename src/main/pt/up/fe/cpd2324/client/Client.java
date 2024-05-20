@@ -108,14 +108,14 @@ public class Client {
         while (true) {
             Message message = Connection.receive(this.socket);
 
-            switch (message.getType()) {    // 2 possible states: Game mode selection or playing the game
+            switch (message.getType()) {    // 2 possible states: Select game mode or play game
                 case MODE:
                     this.selectGameMode();
                     break;
                 case GAME:
                     this.playGame();
                     break;
-                case PING:
+                case PING:  // Ignore pings from the server
                     break;
                 default:
                     System.out.println("Invalid message type: " + message.getType());
@@ -145,8 +145,6 @@ public class Client {
                     Utils.clearScreen();
                     System.out.println(content);
                     break;
-                case PING:
-                    break; 
                 default:
                     System.out.println("Invalid message type: " + message.getType());
             }
@@ -177,13 +175,10 @@ public class Client {
                 case GAME_OVER:
                     Utils.clearScreen();
                     System.out.println(content);
-                    System.out.println(Connection.receive(this.socket).getContent());
                     return;
                 case ERROR:
                     Utils.clearScreen();
                     System.out.println(content);
-                    break;
-                case PING:
                     break;
                 default:
                     System.out.println("Invalid message type: " + message.getType());
