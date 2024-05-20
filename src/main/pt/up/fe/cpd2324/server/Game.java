@@ -10,57 +10,61 @@ import java.io.IOException;
 // Represents a game between two players
 // Handles the game logic and interactions with the players
 public class Game implements Runnable {
-    private final Player player1;
-    private final Player player2;
-
-    private final Boolean ranked;
-    
-    private final Stones stones = new Stones(2);
-
     private Player currentPlayer;
     private Player otherPlayer;
 
-    public Game(Player player1, Player player2, Boolean ranked) {
-        this.player1 = player1;
-        this.player2 = player2;
-        this.ranked = ranked;
+    private final Boolean ranked;   // Whether the game is ranked or not
+    private Player winner;
+    private Player loser;
+    
+    private final Stones stones = new Stones(2); // Game state
 
-        this.currentPlayer = this.player1;
-        this.otherPlayer = this.player2;
+    private final int TIMEOUT = 30000;  // Time in milliseconds to wait for a player's move
+
+    public Game(Player player1, Player player2, Boolean ranked) {
+        this.currentPlayer = player1;
+        this.otherPlayer = player2;
+        this.ranked = ranked;
     }
 
     @Override
     public void run() {
         try {
-            System.out.println("Starting game between " + this.player1.getUsername() + " and " + this.player2.getUsername());
+            System.out.println("Starting game between " + this.currentPlayer.getUsername() + " and " + this.otherPlayer.getUsername());
             
             // Notify the players that the game is starting
-            Connection.send(this.player1.getSocket(), new Message(Message.Type.GAME, null));
-            Connection.send(this.player2.getSocket(), new Message(Message.Type.GAME, null));
+            Connection.send(this.currentPlayer.getSocket(), new Message(Message.Type.GAME, null));
+            Connection.send(this.otherPlayer.getSocket(), new Message(Message.Type.GAME, null));
 
+            // Play the game until it's over
             while (!this.stones.isGameOver()) {
                 this.takeTurn();
             }
 
             // Notify the players of the game result
-            Connection.send(this.currentPlayer.getSocket(), new Message(Message.Type.GAME_OVER, "You won!"));
-            Connection.send(this.otherPlayer.getSocket(), new Message(Message.Type.GAME_OVER, "You lost!"));
+            Connection.send(this.winner.getSocket(), new Message(Message.Type.GAME_OVER, "You won!"));
+            Connection.send(this.loser.getSocket(), new Message(Message.Type.GAME_OVER, "You lost!"));
 
-            // Update the ratings and show the new ratings to the players if the game is ranked
-            if (this.ranked) {
-                this.updateRatings();
-            }
-
-            System.out.println("Game between " + this.player1.getUsername() + " and " + this.player2.getUsername() + " ended");
+            System.out.println("Game between " + this.currentPlayer.getUsername() + " and " + this.otherPlayer.getUsername() + " ended");
         } catch (IOException e) {
-            System.out.println("Error running the game: " + e.getMessage());
+            System.out.println("Error during game: " + e.getMessage());
+            
+            // If a player times out, the other player wins
+            this.winner = this.otherPlayer;
+            this.loser = this.currentPlayer;
+
+            try {
+                Connection.send(this.winner.getSocket(), new Message(Message.Type.GAME_OVER, "The other player timed out! You won!"));
+                Connection.send(this.loser.getSocket(), new Message(Message.Type.GAME_OVER, "You ran out of time! You lost!"));
+            } catch (IOException ex) {
+                // Do nothing
+            }
         } finally {
-            // End the game for both players
-            this.player1.setPlaying(false);
-            this.player2.setPlaying(false);
-        }    
+            this.endGame();
+        }
     }
 
+    // Switch the current player with the other player
     private void switchPlayers() {
         Player temp = this.currentPlayer;
         this.currentPlayer = this.otherPlayer;
@@ -87,18 +91,33 @@ public class Game implements Runnable {
         Connection.prompt(this.currentPlayer.getSocket(), "Enter your move (stack numStones): ");
 
         // Receive and process the move
-        String move = Connection.receive(this.currentPlayer.getSocket()).getContent();
+        String move = Connection.receive(this.currentPlayer.getSocket(), TIMEOUT).getContent(); // Timeout if the player takes too long
+
         String[] parts = move.split(" ");
         int stack = Integer.parseInt(parts[0]);
         int numStones = Integer.parseInt(parts[1]);
 
         this.stones.removeStones(stack - 1, numStones);
 
+        
         if (this.stones.isGameOver()) {
+            this.winner = this.currentPlayer;
+            this.loser = this.otherPlayer;
             return;
         }
 
         this.switchPlayers();
+    }
+
+    private void endGame() {
+        // Update the ratings of the players if the game was ranked
+        if (this.ranked) {
+            this.updateRatings();
+        }
+
+        // Set the players as not playing, so they can join another game
+        this.currentPlayer.setPlaying(false);
+        this.otherPlayer.setPlaying(false);
     }
 
     // Calculate the expected score of a player in a game
@@ -107,11 +126,10 @@ public class Game implements Runnable {
     }
     
     // Update the ratings of the players based on the outcome of the game
-    // Winner is always the current player
-    private void updateRatings() {
-        int rating1 = this.currentPlayer.getRating();   // Winner
-        int rating2 = this.otherPlayer.getRating();     // Loser
-
+    private void updateRatings() { 
+        int rating1 = this.winner.getRating();
+        int rating2 = this.loser.getRating();
+        
         double expected1 = this.expectedScore(rating1, rating2);
         double expected2 = this.expectedScore(rating2, rating1);
 
@@ -128,6 +146,7 @@ public class Game implements Runnable {
         Database.getInstance().save();
     }
 
+    // Show the rating of the players to each other
     private void showRating() throws IOException {
         Connection.show(this.currentPlayer.getSocket(), new String[] {
             "Your rating: " + this.currentPlayer.getRating(),

@@ -15,6 +15,7 @@ public class Message {
         GAME,
         CLEAR,
         WAIT,
+        TIMEOUT,
         GAME_OVER,
     } 
 

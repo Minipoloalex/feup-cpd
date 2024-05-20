@@ -21,10 +21,22 @@ public class Connection {
     public static void send(SSLSocket socket, String message) throws IOException {
         send(socket, new Message(Message.Type.PLAIN, message));
     }
-
+    
     public static Message receive(SSLSocket socket) throws IOException {
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         return Message.fromString(in.readLine());   
+    }
+
+    // If timeout throw different exception
+    public static Message receive(SSLSocket socket, long timeout) throws IOException {
+        socket.setSoTimeout((int) timeout);
+        try {
+            return receive(socket);
+        } catch (IOException e) {
+            throw new IOException("Timeout");
+        } finally {
+            socket.setSoTimeout(0);
+        }
     }
 
     public static void ok(SSLSocket socket, String content) throws IOException {

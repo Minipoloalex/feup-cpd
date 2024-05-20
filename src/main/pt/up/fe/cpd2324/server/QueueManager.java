@@ -28,7 +28,6 @@ public class QueueManager implements Runnable {
     @Override
     public void run() {
         try {
-
             Thread.ofVirtual().start(() -> {
                 while (true) {
                     try {

@@ -1,6 +1,5 @@
 .vscode/
 .idea/
+out/
 
 database/db.csv
-
-out/
