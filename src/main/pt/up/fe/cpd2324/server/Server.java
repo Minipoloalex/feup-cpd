@@ -2,13 +2,12 @@ package pt.up.fe.cpd2324.server;
 
 import pt.up.fe.cpd2324.client.Player;
 import pt.up.fe.cpd2324.common.Connection;
+import pt.up.fe.cpd2324.common.TreeSet;
 import pt.up.fe.cpd2324.common.Utils;
 import pt.up.fe.cpd2324.queue.NormalQueue;
 import pt.up.fe.cpd2324.queue.RankedQueue;
 
 import java.io.IOException;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.net.ssl.SSLServerSocket;
@@ -20,8 +19,8 @@ public class Server {
 
     private SSLServerSocket serverSocket;
     
-    private final Set<Player> authenticatedPlayers = new TreeSet<>();
-    private final Set<Player> availablePlayers = new TreeSet<>();
+    private final TreeSet<Player> authenticatedPlayers = new TreeSet<>();
+    private final TreeSet<Player> availablePlayers = new TreeSet<>();
     
     private final NormalQueue<Player> normalQueue = new NormalQueue<>();
     private final RankedQueue<Player> rankedQueue = new RankedQueue<>();
@@ -104,7 +103,7 @@ public class Server {
     }
 
     private void pingClients() {
-        if (System.currentTimeMillis() - this.lastPing < 5000) {   // Ping every 10 seconds
+        if (System.currentTimeMillis() - this.lastPing < 5000) {   // Ping every 5 seconds
             return;
         }
 

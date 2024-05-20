@@ -2,22 +2,23 @@ package pt.up.fe.cpd2324.server;
 
 import pt.up.fe.cpd2324.common.Connection;
 import pt.up.fe.cpd2324.common.Message;
+import pt.up.fe.cpd2324.common.TreeSet;
 import pt.up.fe.cpd2324.client.Player;
 
 import java.io.IOException;
-import java.util.Set;
+
 import javax.net.ssl.SSLSocket;
 
 // Authenticates the client and adds them to the list of authenticated players
 public class ClientAuthenticator implements Runnable {
     private final SSLSocket clientSocket;
 
-    private final Set<Player> authenticatedPlayers;
-    private final Set<Player> availablePlayers;
+    private final TreeSet<Player> authenticatedPlayers;
+    private final TreeSet<Player> availablePlayers;
 
     private final Database database = Database.getInstance();
 
-    public ClientAuthenticator(SSLSocket socket, Set<Player> authenticatedPlayers, Set<Player> availablePlayers) {
+    public ClientAuthenticator(SSLSocket socket, TreeSet<Player> authenticatedPlayers, TreeSet<Player> availablePlayers) {
         this.clientSocket = socket;
         this.authenticatedPlayers = authenticatedPlayers;
         this.availablePlayers = availablePlayers;

@@ -1,24 +1,23 @@
 package pt.up.fe.cpd2324.server;
 
 import java.io.IOException;
-import java.util.Set;
-import java.util.TreeSet;
 
 import pt.up.fe.cpd2324.common.Connection;
 import pt.up.fe.cpd2324.common.Message;
+import pt.up.fe.cpd2324.common.TreeSet;
 import pt.up.fe.cpd2324.client.Player;
 import pt.up.fe.cpd2324.queue.NormalQueue;
 import pt.up.fe.cpd2324.queue.RankedQueue;
 
 // Manages the queues for normal and ranked games
 public class QueueManager implements Runnable {
-    private final Set<Player> availablePlayers;
-    private final Set<Player> pendingPlayers = new TreeSet<>(); // Ad-hoc solution to avoid asking the same player multiple times
+    private final TreeSet<Player> availablePlayers;
+    private final TreeSet<Player> pendingPlayers = new TreeSet<>(); // Ad-hoc solution to avoid asking the same player multiple times
     
     private final NormalQueue<Player> normalQueue;
     private final RankedQueue<Player> rankedQueue;
 
-    public QueueManager(Set<Player> players, NormalQueue<Player> normalQueue, RankedQueue<Player> rankedQueue) {
+    public QueueManager(TreeSet<Player> players, NormalQueue<Player> normalQueue, RankedQueue<Player> rankedQueue) {
         this.availablePlayers = players;
         this.normalQueue = normalQueue;
         this.rankedQueue = rankedQueue;
