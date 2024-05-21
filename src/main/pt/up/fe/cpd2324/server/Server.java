@@ -112,8 +112,6 @@ public class Server {
             try {
                 Connection.ping(player.getSocket());
             } catch (IOException e) {
-                System.out.println("Error pinging player: " + e.getMessage());
-                
                 if (this.normalQueue.contains(player)) {
                     this.normalQueue.remove(player);
                     System.out.println("Player " + player.getUsername() + " removed from the normal queue");

@@ -4,6 +4,7 @@ package pt.up.fe.cpd2324.common;
 public class Message {
     public enum Type { 
         PLAIN,
+        EXIT,
         OK,
         ERROR,
         PING,
@@ -11,7 +12,9 @@ public class Message {
         PROMPT,
         USERNAME,
         PASSWORD,
+        TOKEN,
         MODE,
+        QUEUE,
         GAME,
         CLEAR,
         WAIT,
@@ -32,7 +35,7 @@ public class Message {
     }
 
     public String getContent() {
-        return this.content;
+        return this.content == null ? "" : this.content;
     }
 
     public static Message fromString(String message) {
@@ -40,9 +43,8 @@ public class Message {
             String[] parts = message.split(": ", 2);
             return new Message(Type.valueOf(parts[0]), parts[1]);
         } catch (NullPointerException e) {
-            System.out.println("Error parsing message: " + e.getMessage());
+            // Ignore
         }
-
         return null;
     }
         

@@ -4,7 +4,10 @@ import pt.up.fe.cpd2324.common.Connection;
 import pt.up.fe.cpd2324.common.Message;
 import pt.up.fe.cpd2324.common.Utils;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Scanner;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
@@ -12,14 +15,31 @@ public class Client {
     private final int port;
     private final String hostname;
     private SSLSocket socket;
+    
+    private String username;
 
-    public Client(String hostname, int port) {
+    private final static String TOKEN_PATH = "src/main/pt/up/fe/cpd2324/client/tokens/";
+
+    private Client(String hostname, int port) {
         this.hostname = hostname;
         this.port = port;
     }
 
+    private Client (String hostname, int port, String username) {
+        this.hostname = hostname;
+        this.port = port;
+        this.username = username;
+    }
+
     public static void main(String[] args) {
-        Client client = new Client("localhost", 8080);
+        Client client;
+
+        // If the username is provided as an argument, use it
+        if (args.length == 1) {
+            client = new Client("localhost", 8080, args[0]);
+        } else {
+            client = new Client("localhost", 8080);
+        }
 
         try {
             client.start();
@@ -48,6 +68,8 @@ public class Client {
     }
 
     private void stop() throws IOException {
+        Utils.clearScreen();
+        System.out.println("Exiting...");
         this.socket.close();
     }
 
@@ -88,14 +110,21 @@ public class Client {
                     System.out.println();
                     Connection.send(this.socket, new String(System.console().readPassword(content)));
                     break;
+                case TOKEN:
+                    Connection.send(this.socket, this.readToken());
+                    break;
                 case OK:
                     Utils.clearScreen();
                     System.out.println(content);
+                    this.writeToken(Connection.receive(this.socket).getContent());
                     return true;
                 case ERROR:
                     Utils.clearScreen();
                     System.out.println(content);
                     break;
+                case EXIT:
+                    this.stop();
+                    return false;
                 default:
                     System.out.println("Invalid message type: " + message.getType());
                     break;
@@ -111,6 +140,11 @@ public class Client {
             switch (message.getType()) {    // 2 possible states: Select game mode or play game
                 case MODE:
                     this.selectGameMode();
+                    break;
+                case QUEUE:
+                    Utils.clearScreen();
+                    System.out.println(message.getContent());
+                    System.out.println(Connection.receive(this.socket).getContent());
                     break;
                 case GAME:
                     this.playGame();
@@ -129,6 +163,8 @@ public class Client {
             String content = message.getContent();
 
             switch (message.getType()) {
+                case MODE:
+                    Utils.clearScreen();
                 case SHOW:
                     System.out.println(content);
                     break;
@@ -137,14 +173,17 @@ public class Client {
                     Connection.send(this.socket, System.console().readLine(content));
                     break;
                 case OK:
-                    Utils.clearScreen();
-                    System.out.println(content);
-                    System.out.println(Connection.receive(this.socket).getContent());
                     return;
                 case ERROR:
                     Utils.clearScreen();
                     System.out.println(content);
                     break;
+                case PING:
+                    Connection.send(this.socket, new Message(Message.Type.PING, null));
+                    break;
+                case EXIT:
+                    this.stop();
+                    return;
                 default:
                     System.out.println("Invalid message type: " + message.getType());
             }
@@ -184,5 +223,44 @@ public class Client {
                     System.out.println("Invalid message type: " + message.getType());
             }
         }
+    }
+
+    private void writeToken(String reponse) {
+        String[] parts = reponse.split("--");  // Split the response into "username--token
+        String username = parts[0];
+        String token = parts[1];
+
+        File folder = new File(TOKEN_PATH);
+        
+        if (!folder.exists()) {
+            folder.mkdir();
+        }
+        
+        File file = new File(TOKEN_PATH + username + ".txt");
+        try {
+            FileWriter writer = new FileWriter(file);
+            writer.write(token);
+            writer.close();
+        } catch (IOException e) {
+            System.out.println("Error writing the token: " + e.getMessage());
+        }
+    }
+
+    private String readToken() {      
+        if (this.username == null) {
+            return "";
+        }
+
+        File file = new File(TOKEN_PATH + this.username + ".txt");
+        try {
+            Scanner scanner = new Scanner(file);
+            String token = scanner.nextLine();
+            scanner.close();
+            return token;
+        } catch (IOException e) {
+            System.out.println("Error reading the token: " + e.getMessage());
+        }
+
+        return "";
     }
 }

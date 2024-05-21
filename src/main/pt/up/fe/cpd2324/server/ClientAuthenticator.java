@@ -35,7 +35,9 @@ public class ClientAuthenticator implements Runnable {
                     "|                      |",
                     "|  1. Login            |",
                     "|  2. Register         |",
+                    "|  3. Reconnect        |",
                     "|                      |",
+                    "|  0. Exit             |",
                     "|______________________|",
                 };
                 Connection.show(this.clientSocket, menu);
@@ -43,8 +45,19 @@ public class ClientAuthenticator implements Runnable {
                 Connection.prompt(this.clientSocket, "Option: ");
                 String option = Connection.receive(this.clientSocket).getContent();
 
-                if (!option.equals("1") && !option.equals("2")) {
+                if (!option.equals("1") && !option.equals("2") && !option.equals("3") && !option.equals("0")) {
                     Connection.error(this.clientSocket, "Invalid option!");
+                    continue;
+                }
+
+                // Exit
+                if (option.equals("0")) {
+                    Connection.send(this.clientSocket, new Message(Message.Type.EXIT, null));
+                    return;
+                }
+
+                if (option.equals("3")) {
+                    authenticated = this.reconnect();
                     continue;
                 }
 
@@ -69,7 +82,7 @@ public class ClientAuthenticator implements Runnable {
                 };
             }   
         } catch (IOException | NullPointerException e) {
-            System.out.println("Error authenticating client: " + e.getMessage());
+            // Do nothing
         }
     }
 
@@ -81,23 +94,21 @@ public class ClientAuthenticator implements Runnable {
                 return false;
             }
 
-            this.authenticatePlayer(player);
-
             Connection.ok(this.clientSocket, "Welcome back, " + username + "!");
+            this.authenticatePlayer(player);
             return true;
         } else {
             Connection.error(this.clientSocket, "Invalid username or password!");
             return false;
         }
     }
-
+            
     private boolean register(String username, String password) throws IOException, NullPointerException {
         if (this.database.addPlayer(username, password)) {
             Player player = this.database.getPlayer(username);
-           
-            this.authenticatePlayer(player);
-
+            
             Connection.ok(this.clientSocket, "Welcome, " + username + "!");
+            this.authenticatePlayer(player);
             return true;
         } else {
             Connection.error(this.clientSocket, "Username already taken!");
@@ -105,11 +116,38 @@ public class ClientAuthenticator implements Runnable {
         }
     }
 
-    private void authenticatePlayer(Player player) {
-        player.setSocket(this.clientSocket);
+    private void authenticatePlayer(Player player) throws IOException {
+        System.out.println("Player " + player.getUsername() + " authenticated");
 
+        player.setSocket(this.clientSocket);
         this.players.add(player);
 
-        System.out.println("Player " + player.getUsername() + " authenticated");
+        // Send the player their token
+        Connection.send(this.clientSocket, new Message(Message.Type.TOKEN, player.getUsername() + "--" + player.generateToken()));
+    }
+
+    private boolean reconnect() throws IOException, NullPointerException {
+        Connection.send(this.clientSocket, new Message(Message.Type.TOKEN, null));
+        String token = Connection.receive(this.clientSocket).getContent();
+
+        for (Player player : this.players) {
+            if (player.getToken().equals(token)) {
+                
+                if (player.isPlaying()) {
+                    Connection.error(this.clientSocket, "Try again later!");
+                    return false;
+                }
+
+                // Update the player's socket to the new one
+                player.setSocket(this.clientSocket);
+                
+                Connection.ok(this.clientSocket, "Welcome back, " + player.getUsername() + "!");
+                Connection.send(this.clientSocket, new Message(Message.Type.TOKEN, player.getUsername() + "--" + player.generateToken()));
+                return true;
+            }
+        }
+
+        Connection.error(this.clientSocket, "Invalid token!");
+        return false;
     }
 }

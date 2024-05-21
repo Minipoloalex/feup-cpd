@@ -2,6 +2,7 @@ package pt.up.fe.cpd2324.client;
 
 import pt.up.fe.cpd2324.queue.Rateable;
 
+import java.util.UUID;
 import javax.net.ssl.SSLSocket;
 
 public class Player implements Comparable<Player>, Rateable {
@@ -9,6 +10,7 @@ public class Player implements Comparable<Player>, Rateable {
     private final String password;
     private final String salt;
     private int rating;
+    private String token;
 
     private SSLSocket socket;
 
@@ -44,6 +46,11 @@ public class Player implements Comparable<Player>, Rateable {
         return this.rating;
     }
 
+
+    public String getToken() {
+        return this.token;
+    }
+
     public SSLSocket getSocket() {
         return this.socket;
     }
@@ -62,6 +69,13 @@ public class Player implements Comparable<Player>, Rateable {
 
     public void setPlaying(boolean isPlaying) {
         this.isPlaying = isPlaying;
+    }
+
+    public String generateToken() {
+        UUID uuid = UUID.randomUUID();
+        this.token = uuid.toString();
+
+        return this.token;
     }
 
     @Override

@@ -14,7 +14,7 @@ public class GameScheduler implements Runnable {
     private final ExecutorService normalPool;
     private final ExecutorService rankedPool;
 
-    private final int NUM_PLAYERS = 2;
+    private final static int NUM_PLAYERS = 2;
 
     public GameScheduler(NormalQueue<Player> normalQueue, RankedQueue<Player> rankedQueue, ExecutorService normalPool, ExecutorService rankedPool) {
         this.normalQueue = normalQueue;
@@ -57,14 +57,10 @@ public class GameScheduler implements Runnable {
                     Game game = new Game(player1, player2, true);
 
                     this.rankedPool.execute(game);
-                }
-
-                // If game ended add players back to the available players
-                // and remove them from the authenticated players
-                
-              }
+                }     
+            }
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            System.out.println("Error in the game scheduler: " + e.getMessage());
         }
     }
 }

@@ -14,7 +14,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class Database {
-    private final String path = "database/db.csv";
+    private final static String PATH = "database/db.csv";
     private final Set<Player> players = new TreeSet<>();
     private static final Database instance = new Database();
 
@@ -30,7 +30,7 @@ public class Database {
             folder.mkdir();
         }
         
-        File file = new File(this.path);
+        File file = new File(PATH);
         if (!file.exists()) {
             try {
                 file.createNewFile();
@@ -45,7 +45,7 @@ public class Database {
     private void load() {
         this.lock.lock();
         try {
-            Scanner scanner = new Scanner(new File(this.path));
+            Scanner scanner = new Scanner(new File(PATH));
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 String[] parts = line.split(";");
@@ -62,7 +62,7 @@ public class Database {
     public void save() {
         this.lock.lock();
         try {
-            FileWriter writer = new FileWriter(this.path);
+            FileWriter writer = new FileWriter(PATH);
             for (Player player : this.players) {
                 String separator = ";";
                 writer.write(player.getUsername() + separator + player.getPassword() + separator + player.getSalt() + separator + player.getRating() + "\n");

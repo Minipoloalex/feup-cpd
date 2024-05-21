@@ -47,7 +47,6 @@ public class Game implements Runnable {
 
             System.out.println("Game between " + this.currentPlayer.getUsername() + " and " + this.otherPlayer.getUsername() + " ended");
         } catch (IOException | NullPointerException e) {
-            System.out.println("Error during game: " + e.getMessage());
             
             // If a player times out, the other player wins
             this.winner = this.otherPlayer;

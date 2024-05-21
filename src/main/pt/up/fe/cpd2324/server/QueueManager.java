@@ -12,7 +12,8 @@ import pt.up.fe.cpd2324.queue.RankedQueue;
 // Manages the queues for normal and ranked games
 public class QueueManager implements Runnable {
     private final TreeSet<Player> players;
-    private final TreeSet<Player> pendingPlayers = new TreeSet<>(); // Ad-hoc solution to avoid asking the same player multiple times
+
+    private final TreeSet<Player> pendingPlayers = new TreeSet<>();
     
     private final NormalQueue<Player> normalQueue;
     private final RankedQueue<Player> rankedQueue;
@@ -25,7 +26,19 @@ public class QueueManager implements Runnable {
   
     @Override
     public void run() {
-        try {
+        try {   
+            // Start a new thread to notify players they are in the queue
+            Thread.ofVirtual().start(() -> {
+                while (true) {
+                    try {
+                        Thread.sleep(1000);
+                        this.notifyPlayers();
+                    } catch (InterruptedException | IOException e) {
+                        // Do nothing
+                    }
+                }
+            });
+
             while (true) {
                 Thread.sleep(1000);
 
@@ -44,7 +57,7 @@ public class QueueManager implements Runnable {
                         try {
                             this.askGameMode(player);
                         } catch (IOException | NullPointerException e) {
-                            System.out.println("Error asking game mode: " + e.getMessage());
+                            this.pendingPlayers.remove(player);
                         }
                     });
                 }
@@ -54,7 +67,19 @@ public class QueueManager implements Runnable {
         }
     }
 
-    private void askGameMode(Player player) throws IOException {
+    private void notifyPlayers() throws IOException {
+        for (Player player : this.players) {
+            if (this.normalQueue.contains(player)) {
+                Connection.send(player.getSocket(), new Message(Message.Type.QUEUE, "You are in the normal queue"));
+                Connection.send(player.getSocket(), new Message(Message.Type.QUEUE, "Waiting for another player to join..."));
+            } else if (this.rankedQueue.contains(player)) {
+                Connection.send(player.getSocket(), new Message(Message.Type.QUEUE, "You are in the ranked queue"));
+                Connection.send(player.getSocket(), new Message(Message.Type.QUEUE, "Waiting for another player to join..."));
+            }
+        }
+    }
+
+    private void askGameMode(Player player) throws IOException, NullPointerException {
         while (true) {
              // Notify the player that they can choose a game mode
              Connection.send(player.getSocket(), new Message(Message.Type.MODE, null));
@@ -67,6 +92,7 @@ public class QueueManager implements Runnable {
                 "|  1. Normal           |",
                 "|  2. Ranked           |",
                 "|                      |",
+                "|  0. Exit             |",
                 "|______________________|",
             };
 
@@ -74,29 +100,35 @@ public class QueueManager implements Runnable {
 
             Connection.show(player.getSocket(), menu);
 
-            // Player is now pending
             this.pendingPlayers.add(player);
 
             Connection.prompt(player.getSocket(), "Option: ");
             String option = Connection.receive(player.getSocket()).getContent();
-           
-            if (option.equals("1")) {
-                this.normalQueue.add(player);
-            } else if (option.equals("2")) {
-                this.rankedQueue.add(player);
-            } else {
+
+            if (!option.equals("1") && !option.equals("2") && !option.equals("0")) {
                 Connection.error(player.getSocket(), "Invalid option!");
+                this.pendingPlayers.remove(player);
                 continue;
             }
- 
+
+            if (option.equals("0")) {
+                Connection.send(player.getSocket(), new Message(Message.Type.EXIT, null));
+                this.pendingPlayers.remove(player);
+                return;
+            }
+
+            if (option.equals("1")) {
+                this.normalQueue.add(player);
+            } else {
+                this.rankedQueue.add(player);
+            }
+
             this.pendingPlayers.remove(player);
 
-            String gameMode = option.equals("1") ? "normal" : "ranked";
-            Connection.ok(player.getSocket(), "Added to the " + gameMode + " queue");
-            Connection.show(player.getSocket(), "Waiting for another player to join...");
-
-            System.out.println("Player " + player.getUsername() + " added to the " + gameMode + " queue");
-
+            String mode = option.equals("1") ? "normal" : "ranked";
+            Connection.ok(player.getSocket(), "You are now in the queue!");
+            System.out.println("Player " + player.getUsername() + " joined the " + mode + " queue");
+            
             break;
         }   
     }
