@@ -17,7 +17,7 @@ public class Game implements Runnable {
     private Player winner;
     private Player loser;
     
-    private final Stones stones = new Stones(2); // Game state
+    private final Stones stones = new Stones(); // Game state
 
     private final int TIMEOUT = 60000;  // Time in milliseconds to wait for a player's move
 

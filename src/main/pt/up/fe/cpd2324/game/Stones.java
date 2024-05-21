@@ -5,19 +5,19 @@ import java.util.ArrayList;
 
 public class Stones {
     private final List<Integer> stones = new ArrayList<>();
-    private final int numPlayers;
     private boolean gameOver = false;   // Allows the game to end prematurely, e.g., if a player quits
 
-    public Stones(int numPlayers) {
-        this.numPlayers = numPlayers;
+    public Stones() {
         this.newGame();
     }
 
     private void newGame() {
-        int numStacks = (int) (Math.random() * (this.numPlayers - 1)) + 2;
+        // Random number of stacks between 3 and 4
+        int numStacks = (int) (Math.random() * 2) + 3;
 
         for (int i = 0; i < numStacks; i++) {
-            int numStones = (int) (Math.random() * 5) + 2;
+            // Random number of stones between 2 and 5
+            int numStones = (int) (Math.random() * 4) + 2;
             this.stones.add(numStones);
         }
     }
