@@ -23,7 +23,7 @@ public class Stones {
     }
     
     public String toString() {
-        int maxStackHeight = -1;
+        int maxStackHeight = 0;
 
         for (int stack : this.stones) {
             if (stack > maxStackHeight) {
