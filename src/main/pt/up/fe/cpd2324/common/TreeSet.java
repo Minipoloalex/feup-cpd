@@ -4,7 +4,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 // Implements a thread-safe TreeSet
 // Uses locks to synchronize access to the underlying TreeSet
-public class TreeSet<T> implements Iterable<T> {
+public class TreeSet<T extends Comparable<T>> implements Iterable<T> {
     private final java.util.TreeSet<T> set = new java.util.TreeSet<>();
     private final ReentrantLock lock = new ReentrantLock();
 

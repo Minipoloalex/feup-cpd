@@ -79,7 +79,7 @@ public class QueueManager implements Runnable {
 
             Connection.prompt(player.getSocket(), "Option: ");
             String option = Connection.receive(player.getSocket()).getContent();
-           
+
             if (option.equals("1")) {
                 this.normalQueue.add(player);
             } else if (option.equals("2")) {

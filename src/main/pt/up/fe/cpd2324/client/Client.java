@@ -48,7 +48,12 @@ public class Client {
     }
 
     private void stop() throws IOException {
-        this.socket.close();
+        if (this.socket != null) {
+            this.socket.close();
+        }
+        else {
+            System.out.println("Server is not connected.");
+        }
     }
 
     private void run() {
