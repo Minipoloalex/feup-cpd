@@ -51,8 +51,17 @@ public class Connection {
         Connection.send(socket, new Message(Message.Type.PING, null));
     }
 
+    public static void info(SSLSocket socket, String content) throws IOException {
+        Connection.send(socket, new Message(Message.Type.INFO, content));
+    }
+
     public static void show(SSLSocket socket, String content) throws IOException {
         Connection.send(socket, new Message(Message.Type.SHOW, content));
+    }
+
+    // Send command to clear the screen
+    public static void clear(SSLSocket socket) throws IOException {
+        Connection.send(socket, new Message(Message.Type.CLEAR, null));
     }
     
     // Send multiple lines of text, each line is a separate message
@@ -65,11 +74,6 @@ public class Connection {
 
     public static void prompt(SSLSocket socket, String content) throws IOException {
         Connection.send(socket, new Message(Message.Type.PROMPT, content));
-    }
-
-    // Send command to clear the screen
-    public static void clear(SSLSocket socket) throws IOException {
-        Connection.send(socket, new Message(Message.Type.CLEAR, null));
     }
     
     public static void close(SSLSocket socket) throws IOException {

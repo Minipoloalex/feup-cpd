@@ -29,16 +29,17 @@ public class ClientAuthenticator implements Runnable {
         try {
             while (!authenticated) {
                 String[] menu = {
-                    " ______________________",
-                    "|                      |",
-                    "|  Authentication      |",
-                    "|                      |",
-                    "|  1. Login            |",
-                    "|  2. Register         |",
-                    "|  3. Reconnect        |",
-                    "|                      |",
-                    "|  0. Exit             |",
-                    "|______________________|",
+                    " ______________________________",
+                    "|                              |",
+                    "|  Authentication              |",
+                    "|                              |",
+                    "|  1. Login                    |",
+                    "|  2. Register                 |",
+                    "|  3. Reconnect                |",
+                    "|                              |",
+                    "|  0. Exit                     |",
+                    "|                              |",
+                    "|______________________________|"
                 };
                 Connection.show(this.clientSocket, menu);
                 
@@ -61,11 +62,23 @@ public class ClientAuthenticator implements Runnable {
                     continue;
                 }
 
+                Connection.info(this.clientSocket, "Enter 'back' to return to the previous menu");
+
                 Connection.send(this.clientSocket, new Message(Message.Type.USERNAME, "Username: "));
                 String username = Connection.receive(this.clientSocket).getContent();
 
+                if (username.equals("back")) {
+                    Connection.clear(this.clientSocket);
+                    continue;
+                }
+
                 Connection.send(this.clientSocket, new Message(Message.Type.PASSWORD, "Password: "));
                 String password = Connection.receive(this.clientSocket).getContent();
+
+                if (password.equals("back")) {
+                    Connection.clear(this.clientSocket);
+                    continue;
+                }
 
                 if (username.isEmpty() || password.isEmpty()) {
                     Connection.error(this.clientSocket, "Username and password cannot be empty!");
@@ -95,10 +108,13 @@ public class ClientAuthenticator implements Runnable {
             }
 
             Connection.ok(this.clientSocket, "Welcome back, " + username + "!");
+            
             this.authenticatePlayer(player);
+            
             return true;
         } else {
             Connection.error(this.clientSocket, "Invalid username or password!");
+            
             return false;
         }
     }
@@ -143,11 +159,13 @@ public class ClientAuthenticator implements Runnable {
                 
                 Connection.ok(this.clientSocket, "Welcome back, " + player.getUsername() + "!");
                 Connection.send(this.clientSocket, new Message(Message.Type.TOKEN, player.getUsername() + "--" + player.generateToken()));
+               
                 return true;
             }
         }
 
         Connection.error(this.clientSocket, "Invalid token!");
+        
         return false;
     }
 }

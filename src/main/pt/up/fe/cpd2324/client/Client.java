@@ -56,6 +56,8 @@ public class Client {
     }
 
     private void start() throws IOException {
+        Utils.clearScreen();
+
         // Set the system properties for the keystore (SSL)
         System.setProperty("javax.net.ssl.trustStore", "key_store.jks");
         System.setProperty("javax.net.ssl.trustStorePassword", "keystore");
@@ -63,8 +65,6 @@ public class Client {
         // Create the client socket
         SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
         this.socket = (SSLSocket) factory.createSocket(this.hostname, this.port);
-
-        System.out.println("Connected to server on port " + this.port);
     }
 
     private void stop() throws IOException {
@@ -88,8 +88,6 @@ public class Client {
     }
 
     private boolean authenticate() throws IOException {
-        Utils.clearScreen();
-
         while (true) {
             Message message = Connection.receive(this.socket);
             String content = message.getContent();
@@ -98,12 +96,19 @@ public class Client {
                 case SHOW:
                     System.out.println(content);
                     break;
+                case CLEAR:
+                    Utils.clearScreen();
+                    break;
+                case INFO:
+                    Utils.clearScreen();
+                    System.out.println(content);
+                    break;
                 case PROMPT:
                     System.out.println();
                     Connection.send(this.socket, System.console().readLine(content));
                     break;
                 case USERNAME:
-                    Utils.clearScreen();
+                    System.out.println();
                     Connection.send(this.socket, System.console().readLine(content));
                     break;
                 case PASSWORD:
@@ -141,15 +146,18 @@ public class Client {
                 case MODE:
                     this.selectGameMode();
                     break;
-                case QUEUE:
-                    Utils.clearScreen();
-                    System.out.println(message.getContent());
-                    System.out.println(Connection.receive(this.socket).getContent());
-                    break;
                 case GAME:
                     this.playGame();
                     break;
                 case PING:  // Ignore pings from the server
+                    break;
+                case INFO:
+                    Utils.clearScreen();
+                    System.out.println(message.getContent());
+                    System.out.println(Connection.receive(this.socket).getContent());
+                    break;
+                case CLEAR:
+                    Utils.clearScreen();
                     break;
                 default:
                     System.out.println("Invalid message type: " + message.getType());
@@ -207,7 +215,7 @@ public class Client {
                 case CLEAR:
                     Utils.clearScreen();
                     break;
-                case WAIT:
+                case INFO:
                     System.out.println();
                     System.out.println(content);
                     break;  

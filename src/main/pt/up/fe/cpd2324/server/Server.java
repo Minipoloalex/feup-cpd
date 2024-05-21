@@ -73,7 +73,12 @@ public class Server {
             // Start a new thread to ping the players
             Thread.ofVirtual().start(() -> {
                 while (true) {
-                    this.pingPlayers();
+                    try {
+                        Thread.sleep(1000);
+                        this.pingPlayers();
+                    } catch (InterruptedException e) {
+                        // Do nothing
+                    }
                 }
             });
 
@@ -110,6 +115,7 @@ public class Server {
             }
 
             try {
+                System.out.println("Pinging player " + player.getUsername());
                 Connection.ping(player.getSocket());
             } catch (IOException e) {
                 if (this.normalQueue.contains(player)) {

@@ -7,6 +7,7 @@ public class Message {
         EXIT,
         OK,
         ERROR,
+        INFO,
         PING,
         SHOW,
         PROMPT,
@@ -17,8 +18,6 @@ public class Message {
         QUEUE,
         GAME,
         CLEAR,
-        WAIT,
-        TIMEOUT,
         GAME_OVER,
     } 
 
@@ -45,7 +44,7 @@ public class Message {
         } catch (NullPointerException e) {
             // Ignore
         }
-        return null;
+        return new Message(Type.PLAIN, message);
     }
         
     @Override

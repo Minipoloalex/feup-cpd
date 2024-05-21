@@ -70,11 +70,13 @@ public class QueueManager implements Runnable {
     private void notifyPlayers() throws IOException {
         for (Player player : this.players) {
             if (this.normalQueue.contains(player)) {
-                Connection.send(player.getSocket(), new Message(Message.Type.QUEUE, "You are in the normal queue"));
-                Connection.send(player.getSocket(), new Message(Message.Type.QUEUE, "Waiting for another player to join..."));
+                Connection.clear(player.getSocket());
+                Connection.send(player.getSocket(), new Message(Message.Type.INFO, "You are in the normal queue"));
+                Connection.send(player.getSocket(), new Message(Message.Type.INFO, "Waiting for another player to join..."));
             } else if (this.rankedQueue.contains(player)) {
-                Connection.send(player.getSocket(), new Message(Message.Type.QUEUE, "You are in the ranked queue"));
-                Connection.send(player.getSocket(), new Message(Message.Type.QUEUE, "Waiting for another player to join..."));
+                Connection.clear(player.getSocket());
+                Connection.send(player.getSocket(), new Message(Message.Type.INFO, "You are in the ranked queue"));
+                Connection.send(player.getSocket(), new Message(Message.Type.INFO, "Waiting for another player to join..."));
             }
         }
     }
@@ -85,15 +87,16 @@ public class QueueManager implements Runnable {
              Connection.send(player.getSocket(), new Message(Message.Type.MODE, null));
 
             String[] menu = {
-                " ______________________",
-                "|                      |",
-                "|  Game Mode           |",
-                "|                      |",
-                "|  1. Normal           |",
-                "|  2. Ranked           |",
-                "|                      |",
-                "|  0. Exit             |",
-                "|______________________|",
+                " ______________________________",
+                "|                              |",
+                "|  Game Mode                   |",
+                "|                              |",
+                "|  1. Normal                   |",
+                "|  2. Ranked                   |",
+                "|                              |",
+                "|  0. Exit                     |",
+                "|                              |",
+                "|______________________________|",
             };
 
             Connection.show(player.getSocket(), "Your rating: " + player.getRating());
@@ -105,22 +108,18 @@ public class QueueManager implements Runnable {
             Connection.prompt(player.getSocket(), "Option: ");
             String option = Connection.receive(player.getSocket()).getContent();
 
-            if (!option.equals("1") && !option.equals("2") && !option.equals("0")) {
+            if (option.equals("1")) {
+                this.normalQueue.add(player);
+            } else if (option.equals("2")) {
+                this.rankedQueue.add(player);
+            } else if (option.equals("0")) {
                 Connection.error(player.getSocket(), "Invalid option!");
                 this.pendingPlayers.remove(player);
                 continue;
-            }
-
-            if (option.equals("0")) {
-                Connection.send(player.getSocket(), new Message(Message.Type.EXIT, null));
-                this.pendingPlayers.remove(player);
-                return;
-            }
-
-            if (option.equals("1")) {
-                this.normalQueue.add(player);
             } else {
-                this.rankedQueue.add(player);
+                Connection.error(player.getSocket(), "Invalid option!");
+                this.pendingPlayers.remove(player);
+                continue;
             }
 
             this.pendingPlayers.remove(player);

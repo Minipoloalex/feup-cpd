@@ -84,7 +84,7 @@ public class Game implements Runnable {
         Connection.show(this.currentPlayer.getSocket(), state);
         Connection.show(this.otherPlayer.getSocket(), state);
         
-        Connection.send(this.otherPlayer.getSocket(), new Message(Message.Type.WAIT, "Waiting for the other player...")); 
+        Connection.send(this.otherPlayer.getSocket(), new Message(Message.Type.INFO, "Waiting for the other player...")); 
         
         // Process the current player's move
         this.processMove();
