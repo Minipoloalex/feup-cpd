@@ -19,7 +19,7 @@ public class Game implements Runnable {
     
     private final Stones stones = new Stones(2); // Game state
 
-    private final int TIMEOUT = 30000;  // Time in milliseconds to wait for a player's move
+    private final int TIMEOUT = 60000;  // Time in milliseconds to wait for a player's move
 
     public Game(Player player1, Player player2, Boolean ranked) {
         this.currentPlayer = player1;
@@ -46,7 +46,7 @@ public class Game implements Runnable {
             Connection.send(this.loser.getSocket(), new Message(Message.Type.GAME_OVER, "You lost!"));
 
             System.out.println("Game between " + this.currentPlayer.getUsername() + " and " + this.otherPlayer.getUsername() + " ended");
-        } catch (IOException e) {
+        } catch (IOException | NullPointerException e) {
             System.out.println("Error during game: " + e.getMessage());
             
             // If a player times out, the other player wins
@@ -54,9 +54,9 @@ public class Game implements Runnable {
             this.loser = this.currentPlayer;
 
             try {
-                Connection.send(this.winner.getSocket(), new Message(Message.Type.GAME_OVER, "The other player timed out! You won!"));
+                Connection.send(this.winner.getSocket(), new Message(Message.Type.GAME_OVER, "The other player disconnected! You won!"));
                 Connection.send(this.loser.getSocket(), new Message(Message.Type.GAME_OVER, "You ran out of time! You lost!"));
-            } catch (IOException ex) {
+            } catch (IOException e1) {
                 // Do nothing
             }
         } finally {
@@ -71,7 +71,7 @@ public class Game implements Runnable {
         this.otherPlayer = temp;
     }
 
-    public void takeTurn() throws IOException {
+    public void takeTurn() throws IOException, NullPointerException {
         // Show the current state of the game to both players
         String[] state = this.stones.toString().split("\n");
         
@@ -87,26 +87,42 @@ public class Game implements Runnable {
         
         Connection.send(this.otherPlayer.getSocket(), new Message(Message.Type.WAIT, "Waiting for the other player...")); 
         
-        // Prompt the current player for their move
-        Connection.prompt(this.currentPlayer.getSocket(), "Enter your move (stack numStones): ");
+        // Process the current player's move
+        this.processMove();
+    
+        if (this.stones.isGameOver()) {
+            return;
+        }
 
-        // Receive and process the move
-        String move = Connection.receive(this.currentPlayer.getSocket(), TIMEOUT).getContent(); // Timeout if the player takes too long
+        this.switchPlayers();
+    }
+
+    private void processMove() throws IOException, NullPointerException {
+         // Prompt the current player for their move
+         Connection.prompt(this.currentPlayer.getSocket(), "Enter your move (stack numStones): ");
+        
+        // Receive the move from the current player
+        String move = Connection.receive(this.currentPlayer.getSocket(), TIMEOUT).getContent();
+
+        if (move.equals("quit")) {
+            this.stones.setGameOver(true);
+            this.winner = this.otherPlayer;
+            this.loser = this.currentPlayer;
+            return;
+        }
 
         String[] parts = move.split(" ");
         int stack = Integer.parseInt(parts[0]);
         int numStones = Integer.parseInt(parts[1]);
 
-        this.stones.removeStones(stack - 1, numStones);
+        if (!this.stones.removeStones(stack - 1, numStones)) {
+            this.processMove();
+        }
 
-        
         if (this.stones.isGameOver()) {
             this.winner = this.currentPlayer;
             this.loser = this.otherPlayer;
-            return;
         }
-
-        this.switchPlayers();
     }
 
     private void endGame() {
@@ -139,8 +155,8 @@ public class Game implements Runnable {
         int newRating1 = (int) (rating1 + k * (1 - expected1));
         int newRating2 = (int) (rating2 + k * (0 - expected2));
 
-        this.currentPlayer.setRating(newRating1);
-        this.otherPlayer.setRating(newRating2);
+        this.winner.setRating(newRating1);
+        this.loser.setRating(newRating2);
 
         // Save the new ratings to the database
         Database.getInstance().save();

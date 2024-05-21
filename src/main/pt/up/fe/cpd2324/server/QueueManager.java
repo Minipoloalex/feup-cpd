@@ -17,8 +17,6 @@ public class QueueManager implements Runnable {
     private final NormalQueue<Player> normalQueue;
     private final RankedQueue<Player> rankedQueue;
 
-    private long lastPing = System.currentTimeMillis();
-
     public QueueManager(TreeSet<Player> players, NormalQueue<Player> normalQueue, RankedQueue<Player> rankedQueue) {
         this.players = players;
         this.normalQueue = normalQueue;
@@ -28,17 +26,6 @@ public class QueueManager implements Runnable {
     @Override
     public void run() {
         try {
-            Thread.ofVirtual().start(() -> {
-                while (true) {
-                    try {
-                        Thread.sleep(1000);
-                        this.pingPlayers();
-                    } catch (InterruptedException e) {
-                        System.out.println("Error sleeping thread: " + e.getMessage());
-                    }
-                }
-            });
-            
             while (true) {
                 Thread.sleep(1000);
 
@@ -52,26 +39,26 @@ public class QueueManager implements Runnable {
                         continue;
                     }
                     
-                    // Notify the player before asking for the desired game mode
-                    Connection.send(player.getSocket(), new Message(Message.Type.MODE, null));
-                    
-                    // Start a new thread to handle the player's response
+                    // Start a new thread to ask the player for the game mode
                     Thread.ofVirtual().start(() -> {
                         try {
-                            this.handlePlayer(player);
-                        } catch (IOException e) {
-                            System.out.println("Error adding player to queue: " + e.getMessage());
+                            this.askGameMode(player);
+                        } catch (IOException | NullPointerException e) {
+                            System.out.println("Error asking game mode: " + e.getMessage());
                         }
                     });
                 }
             }
-        } catch (InterruptedException | IOException e) {
+        } catch (InterruptedException e) {
             System.out.println("Error running the queue manager: " + e.getMessage());
         }
     }
 
-    private void handlePlayer(Player player) throws IOException {
+    private void askGameMode(Player player) throws IOException {
         while (true) {
+             // Notify the player that they can choose a game mode
+             Connection.send(player.getSocket(), new Message(Message.Type.MODE, null));
+
             String[] menu = {
                 " ______________________",
                 "|                      |",
@@ -91,14 +78,8 @@ public class QueueManager implements Runnable {
             this.pendingPlayers.add(player);
 
             Connection.prompt(player.getSocket(), "Option: ");
-
-            String option = null;
-            try {
-                option = Connection.receive(player.getSocket()).getContent();
-            } catch (IOException e) {
-                System.out.println("Error receiving option: " + e.getMessage());
-            }
-
+            String option = Connection.receive(player.getSocket()).getContent();
+           
             if (option.equals("1")) {
                 this.normalQueue.add(player);
             } else if (option.equals("2")) {
@@ -118,33 +99,5 @@ public class QueueManager implements Runnable {
 
             break;
         }   
-    }
-
-    private void pingPlayers() {
-        if (System.currentTimeMillis() - this.lastPing < 10000) {   // Ping every 10 seconds
-            return;
-        }
-
-        lastPing = System.currentTimeMillis();
-    
-        for (Player player : this.normalQueue) {
-            try {
-                Connection.ping(player.getSocket());
-            } catch (IOException e) {
-                System.out.println("Error pinging player: " + e.getMessage());
-                this.normalQueue.remove(player);
-                System.out.println("Player " + player.getUsername() + " removed from the normal queue");
-            }
-        }
-
-        for (Player player : this.rankedQueue) {
-            try {
-                Connection.ping(player.getSocket());
-            } catch (IOException e) {
-                System.out.println("Error pinging player: " + e.getMessage());
-                this.rankedQueue.remove(player);
-                System.out.println("Player " + player.getUsername() + " removed from the ranked queue");
-            }
-        }
     }
 }

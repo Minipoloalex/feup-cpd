@@ -1,6 +1,7 @@
 package pt.up.fe.cpd2324.server;
 
 import pt.up.fe.cpd2324.client.Player;
+import pt.up.fe.cpd2324.common.Connection;
 import pt.up.fe.cpd2324.common.TreeSet;
 import pt.up.fe.cpd2324.common.Utils;
 import pt.up.fe.cpd2324.queue.NormalQueue;
@@ -25,6 +26,9 @@ public class Server {
 
     private final ExecutorService normalPool = Executors.newVirtualThreadPerTaskExecutor();
     private final ExecutorService rankedPool = Executors.newVirtualThreadPerTaskExecutor();
+
+    private long lastPing = System.currentTimeMillis();
+    private final int PING_INTERVAL = 10000;    // Ping players every 10 seconds
 
     public Server(int port) {
         this.port = port;
@@ -65,7 +69,14 @@ public class Server {
     }
 
     private void run() {
-        try {
+        try {  
+            // Start a new thread to ping the players
+            Thread.ofVirtual().start(() -> {
+                while (true) {
+                    this.pingPlayers();
+                }
+            });
+
             // Start the queue manager
             Thread.ofVirtual().start(new QueueManager(this.players, this.normalQueue, this.rankedQueue));
             
@@ -82,6 +93,39 @@ public class Server {
             }
         } catch (Exception e) {
             System.out.println("Error running the server: " + e.getMessage());
+        }
+    }
+
+    private void pingPlayers() {
+        if (System.currentTimeMillis() - this.lastPing < PING_INTERVAL) {
+            return;
+        }
+
+        lastPing = System.currentTimeMillis();
+
+        for (Player player : this.players) {
+            // Skip players that are currently playing
+            if (player.isPlaying()) {
+                continue;
+            }
+
+            try {
+                Connection.ping(player.getSocket());
+            } catch (IOException e) {
+                System.out.println("Error pinging player: " + e.getMessage());
+                
+                if (this.normalQueue.contains(player)) {
+                    this.normalQueue.remove(player);
+                    System.out.println("Player " + player.getUsername() + " removed from the normal queue");
+                    continue;
+                }
+
+                if (this.rankedQueue.contains(player)) {
+                    this.rankedQueue.remove(player);
+                    System.out.println("Player " + player.getUsername() + " removed from the ranked queue");
+                    continue;
+                }
+            }
         }
     }
 }

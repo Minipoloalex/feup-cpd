@@ -36,10 +36,16 @@ public class Message {
     }
 
     public static Message fromString(String message) {
-        String[] parts = message.split(": ", 2);
-        return new Message(Type.valueOf(parts[0]), parts[1]);
-    }
+        try {
+            String[] parts = message.split(": ", 2);
+            return new Message(Type.valueOf(parts[0]), parts[1]);
+        } catch (NullPointerException e) {
+            System.out.println("Error parsing message: " + e.getMessage());
+        }
 
+        return null;
+    }
+        
     @Override
     public String toString() {
         return this.type + ": " + this.content;

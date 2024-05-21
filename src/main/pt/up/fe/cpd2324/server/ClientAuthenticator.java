@@ -54,6 +54,11 @@ public class ClientAuthenticator implements Runnable {
                 Connection.send(this.clientSocket, new Message(Message.Type.PASSWORD, "Password: "));
                 String password = Connection.receive(this.clientSocket).getContent();
 
+                if (username.isEmpty() || password.isEmpty()) {
+                    Connection.error(this.clientSocket, "Username and password cannot be empty!");
+                    continue;
+                }
+
                 switch (option) {
                     case "1":
                         authenticated = this.login(username, password);
@@ -63,12 +68,12 @@ public class ClientAuthenticator implements Runnable {
                         break;
                 };
             }   
-        } catch (IOException e) {
+        } catch (IOException | NullPointerException e) {
             System.out.println("Error authenticating client: " + e.getMessage());
         }
     }
 
-    private boolean login(String username, String password) throws IOException {
+    private boolean login(String username, String password) throws IOException, NullPointerException {
         if (this.database.checkPassword(username, password)) {
             Player player = this.database.getPlayer(username);
             if (this.players.contains(player)) {
@@ -86,7 +91,7 @@ public class ClientAuthenticator implements Runnable {
         }
     }
 
-    private boolean register(String username, String password) throws IOException {
+    private boolean register(String username, String password) throws IOException, NullPointerException {
         if (this.database.addPlayer(username, password)) {
             Player player = this.database.getPlayer(username);
            
