@@ -27,7 +27,6 @@ public class Connection {
         return Message.fromString(in.readLine());   
     }
 
-    // If timeout throw different exception
     public static Message receive(SSLSocket socket, long timeout) throws IOException {
         socket.setSoTimeout((int) timeout);
         try {

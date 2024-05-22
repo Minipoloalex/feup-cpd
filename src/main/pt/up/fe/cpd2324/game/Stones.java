@@ -5,7 +5,6 @@ import java.util.ArrayList;
 
 public class Stones {
     private final List<Integer> stones = new ArrayList<>();
-    private boolean gameOver = false;   // Allows the game to end prematurely, e.g., if a player quits
 
     public Stones() {
         this.newGame();
@@ -75,20 +74,14 @@ public class Stones {
 
         return true;
     }
+
     public boolean isGameOver() {
-        boolean hasStones = false;
         for (int stack : this.stones) {
             if (stack > 0) {
-                hasStones = true;
-                break;
+                return false;
             }
         }
 
-        // The game is over if there are no stones left or if the game has been marked as over
-        return this.gameOver || !hasStones;
-    }
-
-    public void setGameOver(boolean gameOver) {
-        this.gameOver = gameOver;
+        return true;
     }
 }

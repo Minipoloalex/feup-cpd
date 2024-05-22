@@ -87,40 +87,53 @@ public class Game implements Runnable {
         Connection.send(this.otherPlayer.getSocket(), new Message(Message.Type.INFO, "Waiting for the other player...")); 
         
         // Process the current player's move
-        this.processMove();
-    
-        if (this.stones.isGameOver()) {
+        if (this.processMove()) {
             return;
         }
 
         this.switchPlayers();
     }
 
-    private void processMove() throws IOException, NullPointerException {
-         // Prompt the current player for their move
-         Connection.prompt(this.currentPlayer.getSocket(), "Enter your move (stack numStones): ");
-        
-        // Receive the move from the current player
-        String move = Connection.receive(this.currentPlayer.getSocket(), TIMEOUT).getContent();
+    // Returns true if the game is over, false otherwise
+    private boolean processMove() throws IOException, NullPointerException {
+        while (true) {
+            Connection.prompt(this.currentPlayer.getSocket(), "Enter your move (stack numStones): ");
+            
+            // Receive the move from the current player
+            String move = Connection.receive(this.currentPlayer.getSocket(), TIMEOUT).getContent();
 
-        if (move.equals("quit")) {
-            this.stones.setGameOver(true);
-            this.winner = this.otherPlayer;
-            this.loser = this.currentPlayer;
-            return;
-        }
+            // If the player quits, end the game, and the other player wins
+            if (move.equals("quit")) {
+                this.winner = this.otherPlayer;
+                this.loser = this.currentPlayer;
+                return true;
+            }
 
-        String[] parts = move.split(" ");
-        int stack = Integer.parseInt(parts[0]);
-        int numStones = Integer.parseInt(parts[1]);
+            try {
+                String moveParts[] = move.split(" ");
+                
+                if (moveParts.length != 2) {
+                    throw new ArrayIndexOutOfBoundsException();
+                }
+                
+                int stack = Integer.parseInt(moveParts[0]);
+                int numStones = Integer.parseInt(moveParts[1]);
 
-        if (!this.stones.removeStones(stack - 1, numStones)) {
-            this.processMove();
-        }
+                if (!this.stones.removeStones(stack - 1, numStones)) {
+                    continue;
+                }
 
-        if (this.stones.isGameOver()) {
-            this.winner = this.currentPlayer;
-            this.loser = this.otherPlayer;
+                if (this.stones.isGameOver()) {
+                    this.winner = this.currentPlayer;
+                    this.loser = this.otherPlayer;
+
+                    return true;
+                }
+
+                return false;
+            } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
+                continue;
+            }       
         }
     }
 

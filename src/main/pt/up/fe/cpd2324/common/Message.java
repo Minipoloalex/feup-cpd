@@ -4,7 +4,6 @@ package pt.up.fe.cpd2324.common;
 public class Message {
     public enum Type { 
         PLAIN,
-        EXIT,
         OK,
         ERROR,
         INFO,

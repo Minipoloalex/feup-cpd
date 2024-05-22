@@ -83,10 +83,20 @@ public class QueueManager implements Runnable {
 
     private void askGameMode(Player player) throws IOException, NullPointerException {
         while (true) {
-             // Notify the player that they can choose a game mode
-             Connection.send(player.getSocket(), new Message(Message.Type.MODE, null));
+            if (this.normalQueue.contains(player) || this.rankedQueue.contains(player) || this.pendingPlayers.contains(player)) {
+                return;
+            }
+
+            if (player.isPlaying()) {
+                return;
+            }
+
+            // Notify the player that they can choose a game mode
+            Connection.send(player.getSocket(), new Message(Message.Type.MODE, null));
 
             String[] menu = {
+                "Hello, " + player.getUsername() + "!",
+                "Your rating: " + player.getRating(),
                 " ______________________________",
                 "|                              |",
                 "|  Game Mode                   |",
@@ -99,34 +109,41 @@ public class QueueManager implements Runnable {
                 "|______________________________|",
             };
 
-            Connection.show(player.getSocket(), "Your rating: " + player.getRating());
-
             Connection.show(player.getSocket(), menu);
 
             this.pendingPlayers.add(player);
 
             Connection.prompt(player.getSocket(), "Option: ");
-            String option = Connection.receive(player.getSocket()).getContent();
+            String option = Connection.receive(player.getSocket()).getContent().trim();
 
-            if (option.equals("1")) {
-                this.normalQueue.add(player);
-            } else if (option.equals("2")) {
-                this.rankedQueue.add(player);
-            } else if (option.equals("0")) {
-                Connection.error(player.getSocket(), "Invalid option!");
-                this.pendingPlayers.remove(player);
-                continue;
-            } else {
+            try {
+                switch (Integer.parseInt(option)) {
+                    case 1:
+                        this.normalQueue.add(player);
+                        break;
+                    case 2:
+                        this.rankedQueue.add(player);
+                        break;
+                    case 0:
+                        this.players.remove(player);
+                        Connection.close(player.getSocket());
+                        return;
+                    default:
+                        Connection.error(player.getSocket(), "Invalid option!");
+                        this.pendingPlayers.remove(player);
+                        continue;
+                }
+            } catch (NumberFormatException e) {
                 Connection.error(player.getSocket(), "Invalid option!");
                 this.pendingPlayers.remove(player);
                 continue;
             }
 
-            this.pendingPlayers.remove(player);
-
             String mode = option.equals("1") ? "normal" : "ranked";
             Connection.ok(player.getSocket(), "You are now in the queue!");
             System.out.println("Player " + player.getUsername() + " joined the " + mode + " queue");
+
+            this.pendingPlayers.remove(player);
             
             break;
         }   

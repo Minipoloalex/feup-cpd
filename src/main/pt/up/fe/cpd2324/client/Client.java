@@ -120,16 +120,12 @@ public class Client {
                     break;
                 case OK:
                     Utils.clearScreen();
-                    System.out.println(content);
                     this.writeToken(Connection.receive(this.socket).getContent());
                     return true;
                 case ERROR:
                     Utils.clearScreen();
                     System.out.println(content);
                     break;
-                case EXIT:
-                    this.stop();
-                    return false;
                 default:
                     System.out.println("Invalid message type: " + message.getType());
                     break;
@@ -187,17 +183,12 @@ public class Client {
                     System.out.println(content);
                     break;
                 case PING:
-                    Connection.send(this.socket, new Message(Message.Type.PING, null));
                     break;
-                case EXIT:
-                    this.stop();
-                    return;
                 default:
                     System.out.println("Invalid message type: " + message.getType());
             }
         }
     }
-            
 
     private void playGame() throws IOException {
         while (true) {
@@ -222,10 +213,13 @@ public class Client {
                 case GAME_OVER:
                     Utils.clearScreen();
                     System.out.println(content);
+                    System.out.println();
                     return;
                 case ERROR:
                     Utils.clearScreen();
                     System.out.println(content);
+                    break;
+                case MODE:
                     break;
                 default:
                     System.out.println("Invalid message type: " + message.getType());
