@@ -47,7 +47,7 @@ java -cp out pt.up.fe.cpd2324.client.Client <username>  # used for tokens
 
 Or:
 ```bash
-make client user=<username>
+make client ARGS="<username>"
 ```
 
 If the client is run with a username, it will look for its token file to authenticate the user, in case of a reconnect attempt.

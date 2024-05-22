@@ -8,4 +8,4 @@ server:
 	make compile && java -cp out pt.up.fe.cpd2324.server.Server
 
 client:
-	make compile && java -cp out pt.up.fe.cpd2324.client.Client $(ARG)
+	make compile && java -cp out pt.up.fe.cpd2324.client.Client $(ARGS)
