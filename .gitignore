@@ -2,4 +2,6 @@
 .idea/
 out/
 
-database/db.csv
+# Ignore data files
+*.csv
+*.txt
