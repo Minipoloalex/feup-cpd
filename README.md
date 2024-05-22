@@ -2,11 +2,7 @@
 
 ## How to run the project
 
-All the following commands assume that the terminal is in the root of the project.
-
-
-Note that, on Windows, you may need to use backward slashes `\` instead of forward slashes `/` in the commands below. If using `make` does not work, simply use the commands without it.
-
+All the following commands assume that the terminal is in the root of the project. They work in UNIX operating systems.
 
 ### Compiling the project
 Just run:
@@ -42,7 +38,7 @@ Or:
 make client
 ```
 
-#### Running a client with an argument
+#### Running a client with a username
 Just run:
 
 ```bash
@@ -54,7 +50,9 @@ Or:
 make client ARG=<username>
 ```
 
-In the last command, the argument `<username>` is used to identify the token file of the user in the file system inside the tokens' folder (which can hold multiple tokens).
+If the client is run with a username, it will look for its token file to authenticate the user, in case of a reconnect attempt.
+The `<username>` argument is used to identify the token file of that user in the file system, inside the tokens' folder.
+
 
 ## Project description
 
