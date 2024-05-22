@@ -2,9 +2,59 @@
 
 ## How to run the project
 
-```bash
+All the following commands assume that the terminal is in the root of the project.
 
+
+Note that, on Windows, you may need to use backward slashes `\` instead of forward slashes `/` in the commands below. If using `make` does not work, simply use the commands without it.
+
+
+### Compiling the project
+Just run:
+```bash
+javac -d out src/main/pt/up/fe/cpd2324/**/*.java
 ```
+
+Or:
+```bash
+make compile
+```
+### Running the server
+Just run:
+
+```bash
+java -cp out pt.up.fe.cpd2324.server.Server
+```
+
+Or:
+```bash
+make server
+```
+
+
+### Running a client
+Just run:
+```bash
+java -cp out pt.up.fe.cpd2324.client.Client
+```
+
+Or:
+```bash
+make client
+```
+
+#### Running a client with an argument
+Just run:
+
+```bash
+java -cp out pt.up.fe.cpd2324.client.Client <username>  # used for tokens
+```
+
+Or:
+```bash
+make client ARG=<username>
+```
+
+In the last command, the argument `<username>` is used to identify the token file of the user in the file system inside the tokens' folder (which can hold multiple tokens).
 
 ## Project description
 
@@ -110,7 +160,7 @@ The most important classes for understanding our architecture are located in the
 
 ---
 
-- [`game/Stones`](src/main/pt/up/fe/cpd2324/game/Stones.java): Holds the logic for building a game and making “moves” in the game i.e., removing rocks.
+- [`game/Stones`](src/main/pt/up/fe/cpd2324/game/Stones.java): Holds the logic for building a game and making “moves” in the game, i.e., removing rocks.
 
 #### Server
 
