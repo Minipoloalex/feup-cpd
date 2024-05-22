@@ -18,6 +18,7 @@ public class Message {
         GAME,
         CLEAR,
         GAME_OVER,
+        END,
     } 
 
     private final Type type;

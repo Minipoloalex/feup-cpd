@@ -8,6 +8,7 @@ import pt.up.fe.cpd2324.queue.NormalQueue;
 import pt.up.fe.cpd2324.queue.RankedQueue;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.net.ssl.SSLServerSocket;
@@ -29,6 +30,8 @@ public class Server {
 
     private long lastPing = System.currentTimeMillis();
     private final int PING_INTERVAL = 10000;    // Ping players every 10 seconds
+
+    private final int MAX_PING_COUNT = 2;
 
     public Server(int port) {
         this.port = port;
@@ -82,11 +85,12 @@ public class Server {
                 }
             });
 
+            TreeSet<Player> pendingPlayers = new TreeSet<>();
             // Start the queue manager
-            Thread.ofVirtual().start(new QueueManager(this.players, this.normalQueue, this.rankedQueue));
+            Thread.ofVirtual().start(new QueueManager(this.players, this.normalQueue, this.rankedQueue, pendingPlayers));
             
             // Start the game scheduler
-            Thread.ofVirtual().start(new GameScheduler(this.normalQueue, this.rankedQueue, this.normalPool, this.rankedPool));
+            Thread.ofVirtual().start(new GameScheduler(this.normalQueue, this.rankedQueue, this.normalPool, this.rankedPool, pendingPlayers));
             
             // Wait for clients to connect
             while (true) {
@@ -108,7 +112,10 @@ public class Server {
 
         lastPing = System.currentTimeMillis();
 
-        for (Player player : this.players) {
+        Iterator<Player> playerIterator = this.players.iterator();
+        while (playerIterator.hasNext()) {
+            Player player = playerIterator.next();
+
             // Skip players that are currently playing
             if (player.isPlaying()) {
                 continue;
@@ -117,17 +124,23 @@ public class Server {
             try {
                 System.out.println("Pinging player " + player.getUsername());
                 Connection.ping(player.getSocket());
+                player.resetPingCount();
             } catch (IOException e) {
-                if (this.normalQueue.contains(player)) {
-                    this.normalQueue.remove(player);
-                    System.out.println("Player " + player.getUsername() + " removed from the normal queue");
-                    continue;
-                }
+                player.incrementPingCount();
+                System.out.println("Failed pinging player " + player.getUsername() + " (ping count: " + player.getPingCount() + ")");
 
-                if (this.rankedQueue.contains(player)) {
-                    this.rankedQueue.remove(player);
-                    System.out.println("Player " + player.getUsername() + " removed from the ranked queue");
-                    continue;
+                if (player.getPingCount() > MAX_PING_COUNT) {
+                    if (this.normalQueue.contains(player)) {
+                        this.normalQueue.remove(player);
+                        System.out.println("Player " + player.getUsername() + " removed from the normal queue");
+                    }
+
+                    if (this.rankedQueue.contains(player)) {
+                        this.rankedQueue.remove(player);
+                        System.out.println("Player " + player.getUsername() + " removed from the ranked queue");
+                    }
+                    playerIterator.remove();
+                    System.out.println("Player " + player.getUsername() + " removed from the server due to inactivity");
                 }
             }
         }

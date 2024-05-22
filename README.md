@@ -47,7 +47,7 @@ java -cp out pt.up.fe.cpd2324.client.Client <username>  # used for tokens
 
 Or:
 ```bash
-make client ARG=<username>
+make client user=<username>
 ```
 
 If the client is run with a username, it will look for its token file to authenticate the user, in case of a reconnect attempt.
@@ -166,7 +166,7 @@ The most important classes for understanding our architecture are located in the
 
 - [`server/Server`](src/main/pt/up/fe/cpd2324/server/Server.java): Main class that starts the server and listens for connections on a certain port. It's responsible for creating threads to manage the queues and games, as well as handling connections from clients. It also creates a thread to ping players to check if they are still connected.
 
-- [`server/ClientAuthenticator`](src/main/pt/up/fe/cpd2324/server/ClientAuthenticator.java): created by the `Server` for each client. It is responsible for authenticating clients.
+- [`server/ClientAuthenticator`](src/main/pt/up/fe/cpd2324/server/ClientAuthenticator.java): created by the `Server` for each client. It is responsible for authenticating clients. Furthermore, it deals with reconnecting clients that were "unexpectedly" disconnected. To do this, it checks if there is a username as an argument of the program and if the correct token for that user is in the file system. Reconnects are only allowed when the client crashes (e.g. CTRL+C), not when exiting through the menu.
 
 - [`server/Database`](src/main/pt/up/fe/cpd2324/server/Database.java): Simulates a database, handles storing players and their information.
 

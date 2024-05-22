@@ -53,6 +53,7 @@ public class ClientAuthenticator implements Runnable {
 
                 // Exit
                 if (option.equals("0")) {
+                    Connection.send(this.clientSocket, new Message(Message.Type.END, null));
                     Connection.close(this.clientSocket);
                     return;
                 }
@@ -148,7 +149,6 @@ public class ClientAuthenticator implements Runnable {
 
         for (Player player : this.players) {
             if (player.getToken().equals(token)) {
-                
                 if (player.isPlaying()) {
                     Connection.error(this.clientSocket, "Try again later!");
                     return false;
@@ -157,7 +157,7 @@ public class ClientAuthenticator implements Runnable {
                 // Update the player's socket to the new one
                 Connection.close(player.getSocket());
                 player.setSocket(this.clientSocket);
-                
+
                 Connection.ok(this.clientSocket, "Welcome back, " + player.getUsername() + "!");
                 Connection.send(this.clientSocket, new Message(Message.Type.TOKEN, player.getUsername() + "--" + player.generateToken()));
                

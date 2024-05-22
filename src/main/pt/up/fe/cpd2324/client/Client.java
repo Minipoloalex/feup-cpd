@@ -70,7 +70,9 @@ public class Client {
     private void stop() throws IOException {
         Utils.clearScreen();
         System.out.println("Exiting...");
-        this.socket.close();
+        if (this.socket != null) {
+            this.socket.close();
+        }
     }
 
     private void run() {
@@ -126,8 +128,11 @@ public class Client {
                     Utils.clearScreen();
                     System.out.println(content);
                     break;
+                case END:
+                    this.stop();
+                    return false;
                 default:
-                    System.out.println("Invalid message type: " + message.getType());
+                    System.out.println("Invalid message type in authenticate: " + message.getType());
                     break;
             }
         }
@@ -156,7 +161,7 @@ public class Client {
                     Utils.clearScreen();
                     break;
                 default:
-                    System.out.println("Invalid message type: " + message.getType());
+                    System.out.println("Invalid message type in listen: " + message.getType());
             }
         }
     }
@@ -184,8 +189,14 @@ public class Client {
                     break;
                 case PING:
                     break;
+                case PLAIN:
+                    System.out.println(content);
+                    break;
+                case END:
+                    this.stop();
+                    return;
                 default:
-                    System.out.println("Invalid message type: " + message.getType());
+                    System.out.println("Invalid message type in selectGameMode: " + message.getType());
             }
         }
     }
@@ -222,7 +233,7 @@ public class Client {
                 case MODE:
                     break;
                 default:
-                    System.out.println("Invalid message type: " + message.getType());
+                    System.out.println("Invalid message type in playGame: " + message.getType());
             }
         }
     }

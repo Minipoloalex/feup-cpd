@@ -10,6 +10,7 @@ public class Player implements Comparable<Player>, Rateable {
     private final String password;
     private final String salt;
     private int rating;
+    private int pingCount;
     private String token;
 
     private SSLSocket socket;
@@ -17,10 +18,7 @@ public class Player implements Comparable<Player>, Rateable {
     private boolean isPlaying = false;
 
     public Player(String username, String password, String salt) {
-        this.username = username;
-        this.password = password;
-        this.salt = salt;
-        this.rating = 1000;
+        this(username, password, salt, 1000);
     }
 
     public Player(String username, String password, String salt, int rating) {
@@ -28,6 +26,7 @@ public class Player implements Comparable<Player>, Rateable {
         this.password = password;
         this.salt = salt;
         this.rating = rating;
+        this.pingCount = 0;
     }
 
     public String getUsername() {
@@ -69,6 +68,18 @@ public class Player implements Comparable<Player>, Rateable {
 
     public void setPlaying(boolean isPlaying) {
         this.isPlaying = isPlaying;
+    }
+
+    public int getPingCount() {
+        return this.pingCount;
+    }
+
+    public void resetPingCount() {
+        this.pingCount = 0;
+    }
+
+    public void incrementPingCount() {
+        this.pingCount++;
     }
 
     public String generateToken() {

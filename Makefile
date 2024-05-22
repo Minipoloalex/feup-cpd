@@ -1,5 +1,5 @@
 all:
-	compile
+	make compile
 
 compile:
 	javac -d out src/main/pt/up/fe/cpd2324/**/*.java

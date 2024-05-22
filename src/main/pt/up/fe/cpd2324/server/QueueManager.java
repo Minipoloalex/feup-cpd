@@ -13,15 +13,16 @@ import pt.up.fe.cpd2324.queue.RankedQueue;
 public class QueueManager implements Runnable {
     private final TreeSet<Player> players;
 
-    private final TreeSet<Player> pendingPlayers = new TreeSet<>();
+    private final TreeSet<Player> pendingPlayers;
     
     private final NormalQueue<Player> normalQueue;
     private final RankedQueue<Player> rankedQueue;
 
-    public QueueManager(TreeSet<Player> players, NormalQueue<Player> normalQueue, RankedQueue<Player> rankedQueue) {
+    public QueueManager(TreeSet<Player> players, NormalQueue<Player> normalQueue, RankedQueue<Player> rankedQueue, TreeSet<Player> pendingPlayers) {
         this.players = players;
         this.normalQueue = normalQueue;
         this.rankedQueue = rankedQueue;
+        this.pendingPlayers = pendingPlayers;
     }
   
     @Override
@@ -126,6 +127,8 @@ public class QueueManager implements Runnable {
                         break;
                     case 0:
                         this.players.remove(player);
+                        this.pendingPlayers.remove(player);
+                        Connection.send(player.getSocket(), new Message(Message.Type.END, null));
                         Connection.close(player.getSocket());
                         return;
                     default:
@@ -142,8 +145,6 @@ public class QueueManager implements Runnable {
             String mode = option.equals("1") ? "normal" : "ranked";
             Connection.ok(player.getSocket(), "You are now in the queue!");
             System.out.println("Player " + player.getUsername() + " joined the " + mode + " queue");
-
-            this.pendingPlayers.remove(player);
             
             break;
         }   
