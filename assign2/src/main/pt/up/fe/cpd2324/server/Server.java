@@ -21,6 +21,7 @@ public class Server {
     private SSLServerSocket serverSocket;
     
     private final TreeSet<Player> players = new TreeSet<>();
+    private final TreeSet<Player> pendingPlayers = new TreeSet<>();
     
     private final NormalQueue<Player> normalQueue = new NormalQueue<>();
     private final RankedQueue<Player> rankedQueue = new RankedQueue<>();
@@ -85,9 +86,8 @@ public class Server {
                 }
             });
 
-            TreeSet<Player> pendingPlayers = new TreeSet<>();
             // Start the queue manager
-            Thread.ofVirtual().start(new QueueManager(this.players, this.normalQueue, this.rankedQueue, pendingPlayers));
+            Thread.ofVirtual().start(new QueueManager(this.players, this.normalQueue, this.rankedQueue, this.pendingPlayers));
             
             // Start the game scheduler
             Thread.ofVirtual().start(new GameScheduler(this.normalQueue, this.rankedQueue, this.normalPool, this.rankedPool, pendingPlayers));
@@ -139,7 +139,9 @@ public class Server {
                         this.rankedQueue.remove(player);
                         System.out.println("Player " + player.getUsername() + " removed from the ranked queue");
                     }
+
                     playerIterator.remove();
+                    this.pendingPlayers.remove(player);
                     System.out.println("Player " + player.getUsername() + " removed from the server due to inactivity");
                 }
             }
